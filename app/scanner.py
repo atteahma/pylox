@@ -49,6 +49,12 @@ class Scanner:
         self._current += 1
         return True
 
+    def _peek(self) -> str:
+        if self._is_at_end():
+            return "\0"
+
+        return self._source[self._current]
+
     def _add_token(self, type_: TokenType, literal: Any = None) -> None:
         text = self._source[self._start : self._current]
         token = Token(type_, text, literal, self._line)
@@ -94,5 +100,11 @@ class Scanner:
                 self._add_token(TokenType.GREATER_EQUAL)
             case ">":
                 self._add_token(TokenType.GREATER)
+            case "/" if self._match("/"):
+                # A comment goes until the end of the line.
+                while self._peek() != "\n" and not self._is_at_end():
+                    self._advance()
+            case "/":
+                self._add_token(TokenType.SLASH)
             case _:
                 self._logger.log_error(self._line, f"Unexpected character: {char}")
