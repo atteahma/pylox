@@ -1,15 +1,20 @@
 from typing import Any
+from app.logger import Logger
 from app.schema import Token, TokenType
 
 
 class Scanner:
+    _logger: Logger
+
     _source: str
     _tokens: list[Token]
     _start: int
     _current: int
     _line: int
 
-    def __init__(self, _source: str) -> None:
+    def __init__(self, _logger: Logger, _source: str) -> None:
+        self._logger = _logger
+
         self._source = _source
         self._tokens = []
         self._start = 0
@@ -65,4 +70,4 @@ class Scanner:
             case "*":
                 self._add_token(TokenType.STAR)
             case _:
-                raise ValueError(f"Unexpected character: {char}")
+                self._logger.log_error(self._line, f"Unexpected character: {char}")

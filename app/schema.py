@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import StrEnum, auto
-from typing import Any
+from typing import Any, Generic, TypeVar
 
 
 class TokenType(StrEnum):
@@ -68,3 +68,12 @@ class Token:
     def __repr__(self) -> str:
         literal_str = "null" if self.literal is None else self.literal
         return f"{self.type_.upper()} {self.lexeme} {literal_str}"
+
+
+ResultValue = TypeVar("ResultValue")
+
+
+class Result(Generic[ResultValue]):
+    def __init__(self, value: ResultValue, had_error: bool) -> None:
+        self.value = value
+        self.had_error = had_error

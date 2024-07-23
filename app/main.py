@@ -1,6 +1,7 @@
 import sys
 from typing import Never
 
+from app.logger import Logger
 from app.scanner import Scanner
 
 COMMANDS = {"tokenize"}
@@ -32,11 +33,15 @@ def main():
     with open(filename) as file:
         file_contents = file.read()
 
-    scanner = Scanner(file_contents)
+    logger = Logger()
+    scanner = Scanner(logger, file_contents)
     tokens = scanner.scan_tokens()
 
     for token in tokens:
         print(token)
+
+    if logger.had_error:
+        exit(65)
 
 
 if __name__ == "__main__":
