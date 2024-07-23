@@ -77,3 +77,8 @@ class Result(Generic[ResultValue]):
     def __init__(self, value: ResultValue, had_error: bool) -> None:
         self.value = value
         self.had_error = had_error
+
+
+class Command(StrEnum):
+    TOKENIZE = auto()
+    PARSE = auto()

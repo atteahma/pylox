@@ -2,9 +2,11 @@ import sys
 from typing import Never
 
 from app.logger import Logger
+from app.parser import Parser
 from app.scanner import Scanner
+from app.schema import Command
 
-COMMANDS = {"tokenize"}
+COMMANDS = {Command.TOKENIZE, Command.PARSE}
 
 
 def _exit_with_message(message: str) -> Never:
@@ -27,6 +29,18 @@ def _get_input() -> tuple[str, str | None]:
     return command, filename
 
 
+def _run(logger: Logger, command: Command, text: str) -> None:
+    scanner = Scanner(logger, text)
+    tokens = scanner.scan_tokens()
+
+    if command == Command.TOKENIZE:
+        for token in tokens:
+            print(token)
+        return
+
+    parser = Parser(logger, tokens)
+
+
 def main():
     command, filename = _get_input()
 
@@ -34,11 +48,7 @@ def main():
         file_contents = file.read()
 
     logger = Logger()
-    scanner = Scanner(logger, file_contents)
-    tokens = scanner.scan_tokens()
-
-    for token in tokens:
-        print(token)
+    _run(logger, command, file_contents)
 
     if logger.had_error:
         exit(65)
