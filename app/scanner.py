@@ -27,8 +27,8 @@ class Scanner:
             self._start = self._current
             self._scan_token()
 
-        eof_token = Token(TokenType.EOF, "", None, self._line)
-        self._tokens.append(eof_token)
+        self._start = self._current
+        self._add_token(TokenType.EOF)
 
         return self._tokens
 
@@ -39,6 +39,15 @@ class Scanner:
         char = self._source[self._current]
         self._current += 1
         return char
+
+    def _match(self, expected: str) -> bool:
+        if self._is_at_end():
+            return False
+        if self._source[self._current] != expected:
+            return False
+
+        self._current += 1
+        return True
 
     def _add_token(self, type_: TokenType, literal: Any = None) -> None:
         text = self._source[self._start : self._current]
@@ -69,5 +78,9 @@ class Scanner:
                 self._add_token(TokenType.SEMICOLON)
             case "*":
                 self._add_token(TokenType.STAR)
+            case "=" if self._match("="):
+                self._add_token(TokenType.EQUAL_EQUAL)
+            case "=":
+                self._add_token(TokenType.EQUAL)
             case _:
                 self._logger.log_error(self._line, f"Unexpected character: {char}")
