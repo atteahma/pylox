@@ -32,8 +32,9 @@ class Scanner:
 
         return self._tokens
 
-    def _is_at_end(self) -> bool:
-        return self._current >= len(self._source)
+    def _is_at_end(self, *, offset: int = 0) -> bool:
+        index = self._current + offset
+        return index >= len(self._source)
 
     def _advance(self) -> str:
         char = self._source[self._current]
@@ -49,11 +50,12 @@ class Scanner:
         self._current += 1
         return True
 
-    def _peek(self) -> str:
-        if self._is_at_end():
+    def _peek(self, *, offset: int = 0) -> str:
+        if self._is_at_end(offset=offset):
             return "\0"
 
-        return self._source[self._current]
+        index = self._current + offset
+        return self._source[index]
 
     def _add_token(self, type_: TokenType, literal: Any = None) -> None:
         text = self._source[self._start : self._current]
@@ -77,6 +79,23 @@ class Scanner:
         end_i = self._current - 1
         value = self._source[start_i:end_i]
         self._add_token(TokenType.STRING, value)
+
+    def _number(self) -> None:
+        def advance_while_digit():
+            while self._peek().isdigit():
+                self._advance()
+
+        advance_while_digit()
+
+        # Handle decimal values
+        if self._peek() == "." and self._peek(offset=1).isdigit():
+            self._advance()
+
+            advance_while_digit()
+
+        value_str = self._source[self._start : self._current]
+        value = float(value_str)
+        self._add_token(TokenType.NUMBER, value)
 
     def _scan_token(self) -> None:
         char = self._advance()
@@ -132,5 +151,7 @@ class Scanner:
                 self._line += 1
             case '"':
                 self._string()
+            case _ if char.isdigit():
+                self._number()
             case _:
                 self._logger.log_error(self._line, f"Unexpected character: {char}")
