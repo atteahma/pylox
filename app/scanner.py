@@ -97,6 +97,12 @@ class Scanner:
         value = float(value_str)
         self._add_token(TokenType.NUMBER, value)
 
+    def _identifier(self) -> None:
+        while self._peek().isalpha():
+            self._advance()
+
+        self._add_token(TokenType.IDENTIFIER)
+
     def _scan_token(self) -> None:
         char = self._advance()
 
@@ -153,5 +159,7 @@ class Scanner:
                 self._string()
             case _ if char.isdigit():
                 self._number()
+            case _ if char.isalpha():
+                self._identifier()
             case _:
                 self._logger.log_error(self._line, f"Unexpected character: {char}")
