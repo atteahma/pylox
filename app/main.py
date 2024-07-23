@@ -1,19 +1,27 @@
 import sys
+from typing import Never
+
+from app.scanner import Scanner
 
 COMMANDS = {"tokenize"}
 
 
-def _get_input():
+def _exit_with_message(message: str) -> Never:
+    print(message, file=sys.stderr)
+    exit(1)
+
+
+def _get_input() -> tuple[str, str | None]:
     if len(sys.argv) < 3:
-        print("Usage: ./your_program.sh tokenize <filename>", file=sys.stderr)
-        exit(1)
+        _exit_with_message("Usage: ./your_program.sh tokenize <filename>")
 
-    command = sys.argv[1]
-    filename = sys.argv[2]
+    command = sys.argv[1] if len(sys.argv) >= 1 else None
+    filename = sys.argv[2] if len(sys.argv) >= 2 else None
 
+    if command is None:
+        _exit_with_message("Command is required")
     if command not in COMMANDS:
-        print(f"Unknown command: {command}", file=sys.stderr)
-        exit(1)
+        _exit_with_message(f"Unknown command: {command}")
 
     return command, filename
 
@@ -24,10 +32,11 @@ def main():
     with open(filename) as file:
         file_contents = file.read()
 
-    if file_contents:
-        raise NotImplementedError("Scanner not implemented")
-    else:
-        print("EOF  null")
+    scanner = Scanner(file_contents)
+    tokens = scanner.scan_tokens()
+
+    for token in tokens:
+        print(token)
 
 
 if __name__ == "__main__":
