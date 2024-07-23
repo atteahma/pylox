@@ -60,6 +60,24 @@ class Scanner:
         token = Token(type_, text, literal, self._line)
         self._tokens.append(token)
 
+    def _string(self) -> None:
+        while not self._is_at_end() and self._peek() != '"':
+            if self._peek() == "\n":
+                self._line += 1
+            self._advance()
+
+        if self._is_at_end():
+            self._logger.log_error(self._line, "Unterminated string.")
+            return
+
+        # Advance past closing "
+        self._advance()
+
+        start_i = self._start + 1
+        end_i = self._current - 1
+        value = self._source[start_i:end_i]
+        self._add_token(TokenType.STRING, value)
+
     def _scan_token(self) -> None:
         char = self._advance()
 
@@ -112,5 +130,7 @@ class Scanner:
             case "\n":
                 # Ignore newline, but increment line number
                 self._line += 1
+            case '"':
+                self._string()
             case _:
                 self._logger.log_error(self._line, f"Unexpected character: {char}")
