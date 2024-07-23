@@ -82,5 +82,17 @@ class Scanner:
                 self._add_token(TokenType.EQUAL_EQUAL)
             case "=":
                 self._add_token(TokenType.EQUAL)
+            case "!" if self._match("="):
+                self._add_token(TokenType.BANG_EQUAL)
+            case "!":
+                self._add_token(TokenType.BANG)
+            case "<" if self._match("="):
+                self._add_token(TokenType.LESS_EQUAL)
+            case "<":
+                self._add_token(TokenType.LESS)
+            case ">" if self._match("="):
+                self._add_token(TokenType.GREATER_EQUAL)
+            case ">":
+                self._add_token(TokenType.GREATER)
             case _:
                 self._logger.log_error(self._line, f"Unexpected character: {char}")
