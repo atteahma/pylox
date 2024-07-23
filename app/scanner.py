@@ -3,6 +3,25 @@ from app.logger import Logger
 from app.schema import Token, TokenType
 from app import util
 
+KEYWORDS: dict[str, TokenType] = {
+    "and": TokenType.AND,
+    "class": TokenType.CLASS,
+    "else": TokenType.ELSE,
+    "false": TokenType.FALSE,
+    "for": TokenType.FOR,
+    "fun": TokenType.FUN,
+    "if": TokenType.IF,
+    "nil": TokenType.NIL,
+    "or": TokenType.OR,
+    "print": TokenType.PRINT,
+    "return": TokenType.RETURN,
+    "super": TokenType.SUPER,
+    "this": TokenType.THIS,
+    "true": TokenType.TRUE,
+    "var": TokenType.VAR,
+    "while": TokenType.WHILE,
+}
+
 
 class Scanner:
     _logger: Logger
@@ -102,7 +121,9 @@ class Scanner:
         while util.is_alphanumeric(self._peek(), underscore_allowed=True):
             self._advance()
 
-        self._add_token(TokenType.IDENTIFIER)
+        text = self._source[self._start : self._current]
+        type_ = KEYWORDS.get(text) or TokenType.IDENTIFIER
+        self._add_token(type_)
 
     def _scan_token(self) -> None:
         char = self._advance()
