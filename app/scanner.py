@@ -101,10 +101,16 @@ class Scanner:
             case ">":
                 self._add_token(TokenType.GREATER)
             case "/" if self._match("/"):
-                # A comment goes until the end of the line.
+                # Advance until the end of the line
                 while self._peek() != "\n" and not self._is_at_end():
                     self._advance()
             case "/":
                 self._add_token(TokenType.SLASH)
+            case " " | "\r" | "\t":
+                # Ignore whitespace
+                pass
+            case "\n":
+                # Ignore newline, but increment line number
+                self._line += 1
             case _:
                 self._logger.log_error(self._line, f"Unexpected character: {char}")
