@@ -67,4 +67,4 @@ class Token:
 
     def __repr__(self) -> str:
         literal_str = "null" if self.literal is None else self.literal
-        return f"{self.type_} {self.lexeme} {literal_str}"
+        return f"{self.type_.upper()} {self.lexeme} {literal_str}"
