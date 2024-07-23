@@ -1,6 +1,7 @@
 from typing import Any
 from app.logger import Logger
 from app.schema import Token, TokenType
+from app import util
 
 
 class Scanner:
@@ -82,13 +83,13 @@ class Scanner:
 
     def _number(self) -> None:
         def advance_while_digit():
-            while self._peek().isdigit():
+            while util.is_digit(self._peek()):
                 self._advance()
 
         advance_while_digit()
 
         # Handle decimal values
-        if self._peek() == "." and self._peek(offset=1).isdigit():
+        if self._peek() == "." and util.is_digit(self._peek(offset=1)):
             self._advance()
 
             advance_while_digit()
@@ -98,7 +99,7 @@ class Scanner:
         self._add_token(TokenType.NUMBER, value)
 
     def _identifier(self) -> None:
-        while self._peek().isalpha():
+        while util.is_alphanumeric(self._peek(), underscore_allowed=True):
             self._advance()
 
         self._add_token(TokenType.IDENTIFIER)
@@ -157,9 +158,9 @@ class Scanner:
                 self._line += 1
             case '"':
                 self._string()
-            case _ if char.isdigit():
+            case _ if util.is_digit(char):
                 self._number()
-            case _ if char.isalpha():
+            case _ if util.is_alpha(char, underscore_allowed=True):
                 self._identifier()
             case _:
                 self._logger.log_error(self._line, f"Unexpected character: {char}")
