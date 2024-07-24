@@ -12,9 +12,8 @@ class Environment:
         self._values = {}
         self._enclosing = enclosing
 
-    def define(self, name: Token, value: LoxObject) -> None:
-        lexeme = name.lexeme
-        self._values[lexeme] = value
+    def define(self, name: str, value: LoxObject) -> None:
+        self._values[name] = value
 
     def get(self, name: Token) -> LoxObject:
         lexeme = name.lexeme

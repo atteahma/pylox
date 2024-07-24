@@ -11,7 +11,9 @@ if TYPE_CHECKING:
 
 
 class LoxCallable(ABC):
-    arity: int
+    @property
+    @abstractmethod
+    def arity(self) -> int: ...
 
     @abstractmethod
     def call(

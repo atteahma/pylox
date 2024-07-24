@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from app import util
+from app import builtins, util
 from app.environment import Environment
 from app.errors import LoxFlowException, LoxRuntimeError
 from app.expression import (
@@ -33,11 +33,15 @@ from app import validate
 
 class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
     _logger: Logger
+    _globals: Environment
     _environment: Environment
 
     def __init__(self, _logger: Logger):
         self._logger = _logger
-        self._environment = Environment()
+        self._globals = Environment()
+        self._environment = self._globals
+
+        self._globals.define("clock", builtins.Clock())
 
     def interpret(self, statements: Sequence[Stmt]) -> None:
         try:
@@ -176,7 +180,7 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
         if stmt.initializer is not None:
             value = self._evaluate(stmt.initializer)
 
-        self._environment.define(stmt.name, value)
+        self._environment.define(stmt.name.lexeme, value)
 
     def visit_block_stmt(self, stmt: BlockStmt) -> None:
         environment = Environment(enclosing=self._environment)
