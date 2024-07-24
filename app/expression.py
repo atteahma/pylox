@@ -33,6 +33,9 @@ class ExprVisitor(Generic[R], ABC):
     @abstractmethod
     def visit_logical_expr(self, expr: "LogicalExpr") -> R: ...
 
+    @abstractmethod
+    def visit_call_expr(self, expr: "CallExpr") -> R: ...
+
 
 class Expr(ABC):
     @abstractmethod
@@ -109,3 +112,20 @@ class LogicalExpr(Expr):
 
     def accept(self, visitor: ExprVisitor[R]) -> R:
         return visitor.visit_logical_expr(self)
+
+
+@dataclass
+class CallExpr(Expr):
+    callee: Expr
+    paren: Token
+    arguments: list[Expr]
+
+    def accept(self, visitor: ExprVisitor[R]) -> R:
+        return visitor.visit_call_expr(self)
+
+
+"""
+unary          → ( "!" | "-" ) unary | call ;
+call           → primary ( "(" arguments? ")" )* ;
+arguments      → expression ( "," expression )* ;
+"""

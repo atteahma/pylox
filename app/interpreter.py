@@ -208,7 +208,7 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
                 elif exc.token.type_ == TokenType.CONTINUE:
                     continue
 
-                raise InterpreterError(exc.token, "Unknown flow exception raised")
+                raise exc
 
     def visit_flow_stmt(self, stmt: FlowStmt) -> None:
         raise FlowException(stmt.token)
