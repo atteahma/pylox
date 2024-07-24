@@ -5,6 +5,7 @@ from app.expression import (
     Expr,
     GroupingExpr,
     LiteralExpr,
+    LogicalExpr,
     TernaryExpr,
     UnaryExpr,
     ExprVisitor,
@@ -47,6 +48,9 @@ class AstPrinter(ExprVisitor[str]):
 
     def visit_assign_expr(self, expr: AssignExpr) -> str:
         return self._parenthesize(expr.name.lexeme, expr.value_expr)
+
+    def visit_logical_expr(self, expr: LogicalExpr) -> str:
+        raise NotImplementedError("AstPrinter.visit_logical_expr not implemented")
 
     def print(self, expr: Expr) -> str:
         value = expr.accept(self)
