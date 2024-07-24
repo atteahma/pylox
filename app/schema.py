@@ -7,11 +7,15 @@ from typing import Generic, Protocol, TypeVar, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from app.interpreter import Interpreter
-    from app.expression import Expr
 
 
 class LoxCallable(Protocol):
-    def call(interpreter: Interpreter, arguments: Sequence[Expr]) -> object: ...
+    def call(
+        self, interpreter: Interpreter, arguments: Sequence[LoxObject]
+    ) -> LoxObject: ...
+
+
+LoxObject = LoxCallable | float | str | bool | None
 
 
 class TokenType(StrEnum):
@@ -78,7 +82,7 @@ class TokenType(StrEnum):
 class Token:
     type_: TokenType
     lexeme: str
-    literal: object
+    literal: LoxObject
     line: int
 
     def __repr__(self) -> str:

@@ -17,7 +17,7 @@ from app.expression import (
     VariableExpr,
 )
 from app.logger import Logger
-from app.schema import LoxCallable, Token, TokenType
+from app.schema import LoxCallable, LoxObject, Token, TokenType
 from app.statement import (
     BlockStmt,
     ExpressionStmt,
@@ -31,7 +31,7 @@ from app.statement import (
 )
 
 
-def _validate_number_operand(token: Token, operand: object) -> float:
+def _validate_number_operand(token: Token, operand: LoxObject) -> float:
     if isinstance(operand, float):
         return operand
 
@@ -39,7 +39,7 @@ def _validate_number_operand(token: Token, operand: object) -> float:
 
 
 def _validate_number_operands(
-    token: Token, left: object, right: object
+    token: Token, left: LoxObject, right: LoxObject
 ) -> tuple[float, float]:
     if isinstance(left, float) and isinstance(right, float):
         return left, right
@@ -48,7 +48,7 @@ def _validate_number_operands(
 
 
 def _validate_number_or_string_operands(
-    token: Token, left: object, right: object
+    token: Token, left: LoxObject, right: LoxObject
 ) -> tuple[float, float] | tuple[str, str]:
     if isinstance(left, float) and isinstance(right, float):
         return left, right
@@ -60,7 +60,7 @@ def _validate_number_or_string_operands(
     )
 
 
-class Interpreter(ExprVisitor[object], StmtVisitor[None]):
+class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
     _logger: Logger
     _environment: Environment
 
@@ -94,10 +94,10 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
         finally:
             self._environment = previous
 
-    def _evaluate(self, expression: Expr) -> object:
+    def _evaluate(self, expression: Expr) -> LoxObject:
         return expression.accept(self)
 
-    def visit_binary_expr(self, expr: BinaryExpr) -> object:
+    def visit_binary_expr(self, expr: BinaryExpr) -> LoxObject:
         left = self._evaluate(expr.left)
         right = self._evaluate(expr.right)
 
@@ -135,13 +135,13 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
 
         return None
 
-    def visit_grouping_expr(self, expr: GroupingExpr) -> object:
+    def visit_grouping_expr(self, expr: GroupingExpr) -> LoxObject:
         return self._evaluate(expr.expr)
 
-    def visit_literal_expr(self, expr: LiteralExpr) -> object:
+    def visit_literal_expr(self, expr: LiteralExpr) -> LoxObject:
         return expr.value
 
-    def visit_unary_expr(self, expr: UnaryExpr) -> object:
+    def visit_unary_expr(self, expr: UnaryExpr) -> LoxObject:
         value = self._evaluate(expr.expr)
 
         match (expr.operator.type_):
@@ -153,7 +153,7 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
 
         return None
 
-    def visit_ternary_expr(self, expr: TernaryExpr) -> object:
+    def visit_ternary_expr(self, expr: TernaryExpr) -> LoxObject:
         condition = self._evaluate(expr.condition)
 
         if util.is_truthy(condition):
@@ -161,15 +161,15 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
 
         return self._evaluate(expr.false_expr)
 
-    def visit_variable_expr(self, expr: VariableExpr) -> object:
+    def visit_variable_expr(self, expr: VariableExpr) -> LoxObject:
         return self._environment.get(expr.name)
 
-    def visit_assign_expr(self, expr: AssignExpr) -> object:
+    def visit_assign_expr(self, expr: AssignExpr) -> LoxObject:
         value = self._evaluate(expr.value_expr)
         self._environment.assign(expr.name, value)
         return value
 
-    def visit_logical_expr(self, expr: LogicalExpr) -> object:
+    def visit_logical_expr(self, expr: LogicalExpr) -> LoxObject:
         left = self._evaluate(expr.left)
 
         if expr.operator.type_ == TokenType.OR and util.is_truthy(left):
@@ -179,7 +179,7 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
 
         return self._evaluate(expr.right)
 
-    def visit_call_expr(self, expr: CallExpr) -> object:
+    def visit_call_expr(self, expr: CallExpr) -> LoxObject:
         callee = self._evaluate(expr.callee)
         arguments = [self._evaluate(arg) for arg in expr.arguments]
 

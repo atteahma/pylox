@@ -1,20 +1,20 @@
 from app.errors import InterpreterError
-from app.schema import Token
+from app.schema import LoxObject, Token
 
 
 class Environment:
-    _values: dict[str, object] = {}
+    _values: dict[str, LoxObject] = {}
     _enclosing: "Environment | None"
 
     def __init__(self, enclosing: "Environment | None" = None) -> None:
         self._values = {}
         self._enclosing = enclosing
 
-    def define(self, name: Token, value: object) -> None:
+    def define(self, name: Token, value: LoxObject) -> None:
         lexeme = name.lexeme
         self._values[lexeme] = value
 
-    def get(self, name: Token) -> object:
+    def get(self, name: Token) -> LoxObject:
         lexeme = name.lexeme
 
         if lexeme in self._values:
@@ -25,7 +25,7 @@ class Environment:
 
         raise InterpreterError(name, "Undefined variable '" + lexeme + "'.")
 
-    def assign(self, name: Token, value: object) -> None:
+    def assign(self, name: Token, value: LoxObject) -> None:
         lexeme = name.lexeme
 
         if lexeme in self._values:
