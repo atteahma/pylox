@@ -60,7 +60,9 @@ class Parser:
         )
 
     def _error(self, token: Token, message: str) -> ParserError:
-        self._logger.parser_error(token, message)
+        where = "end" if token.type_ == TokenType.EOF else f"'{token.lexeme}'"
+        self._logger.report(token.line, f" at {where}", message)
+
         return ParserError()
 
     def _expression(self) -> Expr:

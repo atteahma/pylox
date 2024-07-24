@@ -54,6 +54,9 @@ class Scanner:
 
         return self._tokens
 
+    def _error(self, line: int, message: str) -> None:
+        self._logger.report(line, "", message)
+
     def _is_at_end(self, *, offset: int = 0) -> bool:
         index = self._current + offset
         return index >= len(self._source)
@@ -91,7 +94,7 @@ class Scanner:
             self._advance()
 
         if self._is_at_end():
-            self._logger.scanner_error(self._line, "Unterminated string.")
+            self._error(self._line, "Unterminated string.")
             return
 
         # Advance past closing "
@@ -186,4 +189,4 @@ class Scanner:
             case _ if util.is_alpha(char, underscore_allowed=True):
                 self._identifier()
             case _:
-                self._logger.scanner_error(self._line, f"Unexpected character: {char}")
+                self._error(self._line, f"Unexpected character: {char}")
