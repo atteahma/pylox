@@ -10,10 +10,11 @@ from app.expression import (
     TernaryExpr,
     UnaryExpr,
     ExprVisitor,
+    VariableExpr,
 )
 from app.logger import Logger
 from app.schema import Token, TokenType
-from app.statement import ExpressionStmt, PrintStmt, Stmt, StmtVisitor
+from app.statement import ExpressionStmt, PrintStmt, Stmt, StmtVisitor, VarStmt
 
 
 def _check_number_operand(token: Token, operand: Any) -> None:
@@ -60,7 +61,7 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
     def _evaluate(self, expression: Expr) -> Any:
         return expression.accept(self)
 
-    def visitBinaryExpr(self, expr: BinaryExpr) -> Any:
+    def visit_binary_expr(self, expr: BinaryExpr) -> Any:
         left = self._evaluate(expr.left)
         right = self._evaluate(expr.right)
 
@@ -96,13 +97,13 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
 
         return None
 
-    def visitGroupingExpr(self, expr: GroupingExpr) -> Any:
+    def visit_grouping_expr(self, expr: GroupingExpr) -> Any:
         return self._evaluate(expr.expr)
 
-    def visitLiteralExpr(self, expr: LiteralExpr) -> Any:
+    def visit_literal_expr(self, expr: LiteralExpr) -> Any:
         return expr.value
 
-    def visitUnaryExpr(self, expr: UnaryExpr) -> Any:
+    def visit_unary_expr(self, expr: UnaryExpr) -> Any:
         value = self._evaluate(expr.expr)
 
         match (expr.operator.type_):
@@ -114,7 +115,7 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
 
         return None
 
-    def visitTernaryExpr(self, expr: TernaryExpr) -> Any:
+    def visit_ternary_expr(self, expr: TernaryExpr) -> Any:
         condition = self._evaluate(expr.condition)
 
         if util.is_truthy(condition):
@@ -122,9 +123,15 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
 
         return self._evaluate(expr.false_expr)
 
-    def visitExpressionStmt(self, stmt: ExpressionStmt) -> None:
+    def visit_variable_expr(self, expr: VariableExpr) -> Any:
+        pass
+
+    def visit_expression_stmt(self, stmt: ExpressionStmt) -> None:
         self._evaluate(stmt.expr)
 
-    def visitPrintStmt(self, stmt: PrintStmt) -> None:
+    def visit_print_stmt(self, stmt: PrintStmt) -> None:
         value = self._evaluate(stmt.expr)
         print(util.stringify(value))
+
+    def visit_var_stmt(self, stmt: VarStmt) -> None:
+        pass

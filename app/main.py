@@ -101,3 +101,21 @@ if __name__ == "__main__":
         main()
     except KeyboardInterrupt:
         print("Got interrupt, exiting...")
+
+
+"""
+program        → declaration* EOF ;
+
+declaration    → varDecl
+               | statement ;
+
+statement      → exprStmt
+               | printStmt ;
+
+varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
+
+primary        → "true" | "false" | "nil"
+               | NUMBER | STRING
+               | "(" expression ")"
+               | IDENTIFIER ;
+"""

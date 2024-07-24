@@ -10,19 +10,22 @@ R = TypeVar("R", covariant=True)
 
 class ExprVisitor(Generic[R], ABC):
     @abstractmethod
-    def visitBinaryExpr(self, expr: "BinaryExpr") -> R: ...
+    def visit_binary_expr(self, expr: "BinaryExpr") -> R: ...
 
     @abstractmethod
-    def visitGroupingExpr(self, expr: "GroupingExpr") -> R: ...
+    def visit_grouping_expr(self, expr: "GroupingExpr") -> R: ...
 
     @abstractmethod
-    def visitLiteralExpr(self, expr: "LiteralExpr") -> R: ...
+    def visit_literal_expr(self, expr: "LiteralExpr") -> R: ...
 
     @abstractmethod
-    def visitUnaryExpr(self, expr: "UnaryExpr") -> R: ...
+    def visit_unary_expr(self, expr: "UnaryExpr") -> R: ...
 
     @abstractmethod
-    def visitTernaryExpr(self, expr: "TernaryExpr") -> R: ...
+    def visit_ternary_expr(self, expr: "TernaryExpr") -> R: ...
+
+    @abstractmethod
+    def visit_variable_expr(self, expr: "VariableExpr") -> R: ...
 
 
 class Expr(ABC):
@@ -37,7 +40,7 @@ class BinaryExpr(Expr):
     right: Expr
 
     def accept(self, visitor: ExprVisitor[R]) -> R:
-        return visitor.visitBinaryExpr(self)
+        return visitor.visit_binary_expr(self)
 
 
 @dataclass
@@ -47,7 +50,7 @@ class TernaryExpr(Expr):
     false_expr: Expr
 
     def accept(self, visitor: ExprVisitor[R]) -> R:
-        return visitor.visitTernaryExpr(self)
+        return visitor.visit_ternary_expr(self)
 
 
 @dataclass
@@ -55,7 +58,7 @@ class GroupingExpr(Expr):
     expr: Expr
 
     def accept(self, visitor: ExprVisitor[R]) -> R:
-        return visitor.visitGroupingExpr(self)
+        return visitor.visit_grouping_expr(self)
 
 
 @dataclass
@@ -63,7 +66,7 @@ class LiteralExpr(Expr):
     value: Any
 
     def accept(self, visitor: ExprVisitor[R]) -> R:
-        return visitor.visitLiteralExpr(self)
+        return visitor.visit_literal_expr(self)
 
 
 @dataclass
@@ -72,4 +75,12 @@ class UnaryExpr(Expr):
     expr: Expr
 
     def accept(self, visitor: ExprVisitor[R]) -> R:
-        return visitor.visitUnaryExpr(self)
+        return visitor.visit_unary_expr(self)
+
+
+@dataclass
+class VariableExpr(Expr):
+    name: Token
+
+    def accept(self, visitor: ExprVisitor[R]) -> R:
+        return visitor.visit_variable_expr(self)

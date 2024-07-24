@@ -7,10 +7,11 @@ from app.expression import (
     LiteralExpr,
     TernaryExpr,
     UnaryExpr,
+    VariableExpr,
 )
 from app.logger import Logger
 from app.schema import Token, TokenType
-from app.statement import ExpressionStmt, PrintStmt, Stmt
+from app.statement import ExpressionStmt, PrintStmt, Stmt, VarStmt
 
 
 class Parser:
@@ -27,16 +28,13 @@ class Parser:
     def parse(self) -> list[Stmt]:
         statements = []
 
-        try:
-            while not self._is_at_end():
-                statement = self._statement()
+        while not self._is_at_end():
+            statement = self._declaration()
+
+            if statement is not None:
                 statements.append(statement)
 
-            return statements
-        except ParserError as e:
-            pass
-
-        return []
+        return statements
 
     def _peek(self, *, offset: int = 0) -> Token:
         index = self._current + offset
@@ -102,11 +100,31 @@ class Parser:
 
             self._advance()
 
+    def _declaration(self) -> Stmt | None:
+        try:
+            if self._match(TokenType.VAR):
+                return self._var_declaration()
+
+            return self._statement()
+        except ParserError:
+            self._synchronize()
+            return None
+
     def _statement(self) -> Stmt:
         if self._match(TokenType.PRINT):
             return self._print_statement()
 
         return self._expression_statement()
+
+    def _var_declaration(self) -> Stmt:
+        name = self._consume(TokenType.IDENTIFIER, "Expect variable name.")
+
+        initializer = None
+        if self._match(TokenType.EQUAL):
+            initializer = self._expression()
+
+        self._consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.")
+        return VarStmt(name, initializer)
 
     def _print_statement(self) -> Stmt:
         expr = self._expression()
@@ -123,7 +141,7 @@ class Parser:
 
         if self._match(TokenType.QUESTION):
             true_expr = self._expression()
-            self._consume(TokenType.COLON, "Missing expressions for ternarny.")
+            self._consume(TokenType.COLON, "Missing expressions for ternary.")
             false_expr = self._expression()
 
             return TernaryExpr(expr, true_expr, false_expr)
@@ -194,6 +212,9 @@ class Parser:
         if self._match(TokenType.NUMBER, TokenType.STRING):
             token = self._peek(offset=-1)
             return LiteralExpr(token.literal)
+
+        if self._match(TokenType.IDENTIFIER):
+            return VariableExpr(self._peek(offset=-1))
 
         if self._match(TokenType.LEFT_PAREN):
             expr = self._expression()

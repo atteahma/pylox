@@ -25,19 +25,19 @@ class AstPrinter(ExprVisitor[str]):
 
         return "".join(parts)
 
-    def visitBinaryExpr(self, expr: BinaryExpr) -> str:
+    def visit_binary_expr(self, expr: BinaryExpr) -> str:
         return self._parenthesize(expr.operator.lexeme, expr.left, expr.right)
 
-    def visitGroupingExpr(self, expr: GroupingExpr) -> str:
+    def visit_grouping_expr(self, expr: GroupingExpr) -> str:
         return self._parenthesize("group", expr.expr)
 
-    def visitLiteralExpr(self, expr: LiteralExpr) -> str:
+    def visit_literal_expr(self, expr: LiteralExpr) -> str:
         return util.stringify(expr.value, double_to_int=False)
 
-    def visitUnaryExpr(self, expr: UnaryExpr) -> str:
+    def visit_unary_expr(self, expr: UnaryExpr) -> str:
         return self._parenthesize(expr.operator.lexeme, expr.expr)
 
-    def visitTernaryExpr(self, expr: TernaryExpr) -> str:
+    def visit_ternary_expr(self, expr: TernaryExpr) -> str:
         return self._parenthesize("?", expr.condition, expr.true_expr, expr.false_expr)
 
     def print(self, expr: Expr) -> str:
