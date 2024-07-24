@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+from typing import Protocol, cast
 from app import util
 from app.environment import Environment
 from app.errors import FlowException, InterpreterError
@@ -16,7 +17,7 @@ from app.expression import (
     VariableExpr,
 )
 from app.logger import Logger
-from app.schema import Token, TokenType
+from app.schema import LoxCallable, Token, TokenType
 from app.statement import (
     BlockStmt,
     ExpressionStmt,
@@ -179,10 +180,12 @@ class Interpreter(ExprVisitor[object], StmtVisitor[None]):
         return self._evaluate(expr.right)
 
     def visit_call_expr(self, expr: CallExpr) -> object:
-        func = self._evaluate(expr.callee)
+        callee = self._evaluate(expr.callee)
         arguments = [self._evaluate(arg) for arg in expr.arguments]
 
-        raise NotImplementedError("Interpreter.visit_call_expr not implemented")
+        func = cast(LoxCallable, callee)
+
+        return func.call(self, arguments)
 
     def visit_expression_stmt(self, stmt: ExpressionStmt) -> None:
         self._evaluate(stmt.expr)

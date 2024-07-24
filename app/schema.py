@@ -1,6 +1,17 @@
+from __future__ import annotations
+
+from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import StrEnum, auto
-from typing import Generic, TypeVar
+from typing import Generic, Protocol, TypeVar, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.interpreter import Interpreter
+    from app.expression import Expr
+
+
+class LoxCallable(Protocol):
+    def call(interpreter: Interpreter, arguments: Sequence[Expr]) -> object: ...
 
 
 class TokenType(StrEnum):
