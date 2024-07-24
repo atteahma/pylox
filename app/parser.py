@@ -1,6 +1,7 @@
 from collections.abc import Sequence
 from app.errors import ParserError
 from app.expression import (
+    AssignExpr,
     BinaryExpr,
     Expr,
     GroupingExpr,
@@ -145,14 +146,20 @@ class Parser:
         return ExpressionStmt(expr)
 
     def _expression(self) -> Expr:
+        return self._assignment()
+
+    def _assignment(self) -> Expr:
         expr = self._equality()
 
-        if self._match(TokenType.QUESTION):
-            true_expr = self._expression()
-            self._consume(TokenType.COLON, "Missing expressions for ternary.")
-            false_expr = self._expression()
+        if self._match(TokenType.EQUAL):
+            equals = self._peek(offset=-1)
+            value = self._assignment()
 
-            return TernaryExpr(expr, true_expr, false_expr)
+            if isinstance(expr, VariableExpr):
+                name = expr.name
+                return AssignExpr(name, value)
+
+            self._error(equals, "Invalid assignment target.")
 
         return expr
 

@@ -27,6 +27,9 @@ class ExprVisitor(Generic[R], ABC):
     @abstractmethod
     def visit_variable_expr(self, expr: "VariableExpr") -> R: ...
 
+    @abstractmethod
+    def visit_assign_expr(self, expr: "AssignExpr") -> R: ...
+
 
 class Expr(ABC):
     @abstractmethod
@@ -84,3 +87,12 @@ class VariableExpr(Expr):
 
     def accept(self, visitor: ExprVisitor[R]) -> R:
         return visitor.visit_variable_expr(self)
+
+
+@dataclass
+class AssignExpr(Expr):
+    name: Token
+    value: Expr
+
+    def accept(self, visitor: ExprVisitor[R]) -> R:
+        return visitor.visit_assign_expr(self)
