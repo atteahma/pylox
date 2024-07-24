@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import StrEnum, auto
-from typing import Any, Generic, Protocol, TypeVar
+from typing import Generic, TypeVar
 
 
 class TokenType(StrEnum):

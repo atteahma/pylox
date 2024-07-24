@@ -2,6 +2,7 @@ from app import util
 from app.expression import (
     AssignExpr,
     BinaryExpr,
+    CallExpr,
     Expr,
     GroupingExpr,
     LiteralExpr,
@@ -51,6 +52,9 @@ class AstPrinter(ExprVisitor[str]):
 
     def visit_logical_expr(self, expr: LogicalExpr) -> str:
         raise NotImplementedError("AstPrinter.visit_logical_expr not implemented")
+
+    def visit_call_expr(self, expr: CallExpr) -> str:
+        raise NotImplementedError("AstPrinter.visit_call_expr not implemented")
 
     def print(self, expr: Expr) -> str:
         value = expr.accept(self)

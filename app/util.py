@@ -1,4 +1,4 @@
-from typing import Any, Never, TypeVar, Union, cast, overload
+from typing import Any, TypeVar, Union, cast
 
 
 def is_alpha(char: str, *, underscore_allowed: bool = False) -> bool:

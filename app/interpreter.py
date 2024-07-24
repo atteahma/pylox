@@ -1,5 +1,4 @@
 from collections.abc import Sequence
-from typing import Any
 from app import util
 from app.environment import Environment
 from app.errors import FlowException, InterpreterError
@@ -179,11 +178,11 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
 
         return self._evaluate(expr.right)
 
-    # def visit_call_expr(self, expr: CallExpr) -> Any:
-    #     func = self._evaluate(expr.callee)
-    #     arguments = [self._evaluate(arg) for arg in expr.arguments]
+    def visit_call_expr(self, expr: CallExpr) -> LoxObject:
+        func = self._evaluate(expr.callee)
+        arguments = [self._evaluate(arg) for arg in expr.arguments]
 
-    #     return func.call(self, arguments)
+        raise NotImplementedError("Interpreter.visit_call_expr not implemented")
 
     def visit_expression_stmt(self, stmt: ExpressionStmt) -> None:
         self._evaluate(stmt.expr)
