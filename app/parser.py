@@ -10,6 +10,7 @@ from app.expression import (
 )
 from app.logger import Logger
 from app.schema import Token, TokenType
+from app.statement import ExpressionStmt, PrintStmt, Stmt
 
 
 class Parser:
@@ -23,11 +24,14 @@ class Parser:
         self._tokens = list(_tokens)
         self._current = 0
 
-    def parse(self) -> Expr | None:
-        try:
-            return self._expression()
-        except ParserError:
-            return None
+    def parse(self) -> list[Stmt]:
+        statements = []
+
+        while not self._is_at_end():
+            statement = self._statement()
+            statements.append(statement)
+
+        return statements
 
     def _peek(self, *, offset: int = 0) -> Token:
         index = self._current + offset
@@ -92,6 +96,22 @@ class Parser:
                 return
 
             self._advance()
+
+    def _statement(self) -> Stmt:
+        if self._match(TokenType.PRINT):
+            return self._print_statement()
+
+        return self._expression_statement()
+
+    def _print_statement(self) -> Stmt:
+        expr = self._expression()
+        self._consume(TokenType.SEMICOLON, "Expect ';' after value.")
+        return PrintStmt(expr)
+
+    def _expression_statement(self) -> Stmt:
+        expr = self._expression()
+        self._consume(TokenType.SEMICOLON, "Expect ';' after expression.")
+        return ExpressionStmt(expr)
 
     def _expression(self) -> Expr:
         expr = self._equality()
