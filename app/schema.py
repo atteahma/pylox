@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import StrEnum, auto
-from typing import Any, Generic, TypeVar
+from typing import Any, Generic, Protocol, TypeVar
 
 
 class TokenType(StrEnum):
@@ -63,11 +63,14 @@ class TokenType(StrEnum):
     EOF = auto()
 
 
+LoxObject = float | bool | str | None
+
+
 @dataclass
 class Token:
     type_: TokenType
     lexeme: str
-    literal: Any
+    literal: LoxObject
     line: int
 
     def __repr__(self) -> str:

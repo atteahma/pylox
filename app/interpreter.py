@@ -6,6 +6,7 @@ from app.errors import FlowException, InterpreterError
 from app.expression import (
     AssignExpr,
     BinaryExpr,
+    CallExpr,
     Expr,
     GroupingExpr,
     LiteralExpr,
@@ -16,7 +17,7 @@ from app.expression import (
     VariableExpr,
 )
 from app.logger import Logger
-from app.schema import Token, TokenType
+from app.schema import LoxObject, Token, TokenType
 from app.statement import (
     BlockStmt,
     ExpressionStmt,
@@ -30,32 +31,36 @@ from app.statement import (
 )
 
 
-def _check_number_operand(token: Token, operand: Any) -> None:
-    if type(operand) is float:
-        return
+def _validate_number_operand(token: Token, operand: LoxObject) -> float:
+    if isinstance(operand, float):
+        return operand
 
     raise InterpreterError(token, f"Operand to {token.lexeme} must be a number.")
 
 
-def _check_number_operands(token: Token, left: Any, right: Any) -> None:
-    if type(left) is float and type(right) is float:
-        return
+def _validate_number_operands(
+    token: Token, left: LoxObject, right: LoxObject
+) -> tuple[float, float]:
+    if isinstance(left, float) and isinstance(right, float):
+        return left, right
 
     raise InterpreterError(token, f"Operands to {token.lexeme} must be numbers.")
 
 
-def _check_number_or_string_operands(token: Token, left: Any, right: Any) -> None:
-    if type(left) is float and type(right) is float:
-        return
-    if type(left) is str and type(right) is str:
-        return
+def _validate_number_or_string_operands(
+    token: Token, left: LoxObject, right: LoxObject
+) -> tuple[float, float] | tuple[str, str]:
+    if isinstance(left, float) and isinstance(right, float):
+        return left, right
+    if isinstance(left, str) and isinstance(right, str):
+        return left, right
 
     raise InterpreterError(
         token, f"Operands to {token.lexeme} must be numbers or strings."
     )
 
 
-class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
+class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
     _logger: Logger
     _environment: Environment
 
@@ -89,37 +94,39 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
         finally:
             self._environment = previous
 
-    def _evaluate(self, expression: Expr) -> Any:
+    def _evaluate(self, expression: Expr) -> LoxObject:
         return expression.accept(self)
 
-    def visit_binary_expr(self, expr: BinaryExpr) -> Any:
+    def visit_binary_expr(self, expr: BinaryExpr) -> LoxObject:
         left = self._evaluate(expr.left)
         right = self._evaluate(expr.right)
 
         match (expr.operator.type_):
             case TokenType.MINUS:
-                _check_number_operands(expr.operator, left, right)
+                left, right = _validate_number_operands(expr.operator, left, right)
                 return left - right
             case TokenType.STAR:
-                _check_number_operands(expr.operator, left, right)
+                left, right = _validate_number_operands(expr.operator, left, right)
                 return left * right
             case TokenType.SLASH:
-                _check_number_operands(expr.operator, left, right)
+                left, right = _validate_number_operands(expr.operator, left, right)
                 return left / right
             case TokenType.PLUS:
-                _check_number_or_string_operands(expr.operator, left, right)
-                return left + right
+                left_right = _validate_number_or_string_operands(
+                    expr.operator, left, right
+                )
+                return util.add(*left_right)
             case TokenType.LESS:
-                _check_number_operands(expr.operator, left, right)
+                left, right = _validate_number_operands(expr.operator, left, right)
                 return left < right
             case TokenType.LESS_EQUAL:
-                _check_number_operands(expr.operator, left, right)
+                left, right = _validate_number_operands(expr.operator, left, right)
                 return left <= right
             case TokenType.GREATER:
-                _check_number_operands(expr.operator, left, right)
+                left, right = _validate_number_operands(expr.operator, left, right)
                 return left > right
             case TokenType.GREATER_EQUAL:
-                _check_number_operands(expr.operator, left, right)
+                left, right = _validate_number_operands(expr.operator, left, right)
                 return left >= right
             case TokenType.BANG_EQUAL:
                 return not util.is_equal(left, right)
@@ -128,25 +135,25 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
 
         return None
 
-    def visit_grouping_expr(self, expr: GroupingExpr) -> Any:
+    def visit_grouping_expr(self, expr: GroupingExpr) -> LoxObject:
         return self._evaluate(expr.expr)
 
-    def visit_literal_expr(self, expr: LiteralExpr) -> Any:
+    def visit_literal_expr(self, expr: LiteralExpr) -> LoxObject:
         return expr.value
 
-    def visit_unary_expr(self, expr: UnaryExpr) -> Any:
+    def visit_unary_expr(self, expr: UnaryExpr) -> LoxObject:
         value = self._evaluate(expr.expr)
 
         match (expr.operator.type_):
             case TokenType.MINUS:
-                _check_number_operand(expr.operator, value)
+                value = _validate_number_operand(expr.operator, value)
                 return -1 * value
             case TokenType.BANG:
                 return not util.is_truthy(value)
 
         return None
 
-    def visit_ternary_expr(self, expr: TernaryExpr) -> Any:
+    def visit_ternary_expr(self, expr: TernaryExpr) -> LoxObject:
         condition = self._evaluate(expr.condition)
 
         if util.is_truthy(condition):
@@ -154,15 +161,15 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
 
         return self._evaluate(expr.false_expr)
 
-    def visit_variable_expr(self, expr: VariableExpr) -> Any:
+    def visit_variable_expr(self, expr: VariableExpr) -> LoxObject:
         return self._environment.get(expr.name)
 
-    def visit_assign_expr(self, expr: AssignExpr) -> Any:
+    def visit_assign_expr(self, expr: AssignExpr) -> LoxObject:
         value = self._evaluate(expr.value_expr)
         self._environment.assign(expr.name, value)
         return value
 
-    def visit_logical_expr(self, expr: LogicalExpr) -> Any:
+    def visit_logical_expr(self, expr: LogicalExpr) -> LoxObject:
         left = self._evaluate(expr.left)
 
         if expr.operator.type_ == TokenType.OR and util.is_truthy(left):
@@ -171,6 +178,12 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
             return left
 
         return self._evaluate(expr.right)
+
+    # def visit_call_expr(self, expr: CallExpr) -> Any:
+    #     func = self._evaluate(expr.callee)
+    #     arguments = [self._evaluate(arg) for arg in expr.arguments]
+
+    #     return func.call(self, arguments)
 
     def visit_expression_stmt(self, stmt: ExpressionStmt) -> None:
         self._evaluate(stmt.expr)

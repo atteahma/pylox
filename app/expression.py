@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Generic, TypeVar
 
-from app.schema import Token
+from app.schema import LoxObject, Token
 
 
 R = TypeVar("R", covariant=True)
@@ -72,7 +72,7 @@ class GroupingExpr(Expr):
 
 @dataclass
 class LiteralExpr(Expr):
-    value: Any
+    value: LoxObject
 
     def accept(self, visitor: ExprVisitor[R]) -> R:
         return visitor.visit_literal_expr(self)

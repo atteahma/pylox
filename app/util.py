@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Never, TypeVar, Union, cast, overload
 
 
 def is_alpha(char: str, *, underscore_allowed: bool = False) -> bool:
@@ -62,3 +62,16 @@ def stringify(value: Any, double_to_int: bool = True) -> str:
         str_value = str_value.removesuffix(".0")
 
     return str_value
+
+
+ElemType = TypeVar("ElemType", bound=Union[float, str])
+
+
+# annoying type hack
+def add(a: ElemType, b: ElemType) -> ElemType:
+    if isinstance(a, float) and isinstance(b, float):
+        return cast(ElemType, a + b)
+    if isinstance(a, str) and isinstance(b, str):
+        return cast(ElemType, a + b)
+
+    assert False
