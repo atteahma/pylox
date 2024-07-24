@@ -6,7 +6,6 @@ from app.expression import (
     Expr,
     GroupingExpr,
     LiteralExpr,
-    TernaryExpr,
     UnaryExpr,
     VariableExpr,
 )

@@ -4,6 +4,7 @@ from app import util
 from app.environment import Environment
 from app.errors import InterpreterError
 from app.expression import (
+    AssignExpr,
     BinaryExpr,
     Expr,
     GroupingExpr,
@@ -129,6 +130,11 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
     def visit_variable_expr(self, expr: VariableExpr) -> Any:
         return self._environment.get(expr.name)
 
+    def visit_assign_expr(self, expr: AssignExpr) -> Any:
+        value = self._evaluate(expr.value_expr)
+        self._environment.assign(expr.name, value)
+        return value
+
     def visit_expression_stmt(self, stmt: ExpressionStmt) -> None:
         self._evaluate(stmt.expr)
 
@@ -141,4 +147,4 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
         if stmt.initializer is not None:
             value = self._evaluate(stmt.initializer)
 
-        self._environment.define(stmt.name.lexeme, value)
+        self._environment.define(stmt.name, value)

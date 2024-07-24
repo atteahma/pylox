@@ -10,8 +10,9 @@ class Environment:
     def __init__(self) -> None:
         self._values = {}
 
-    def define(self, name: str, value: Any) -> None:
-        self._values[name] = value
+    def define(self, name: Token, value: Any) -> None:
+        lexeme = name.lexeme
+        self._values[lexeme] = value
 
     def get(self, name: Token) -> Any:
         lexeme = name.lexeme
@@ -20,3 +21,11 @@ class Environment:
             raise InterpreterError(name, "Undefined variable '" + lexeme + "'.")
 
         return self._values[lexeme]
+
+    def assign(self, name: Token, value: Any) -> None:
+        lexeme = name.lexeme
+
+        if lexeme not in self._values:
+            raise InterpreterError(name, "Undefined variable '" + lexeme + "'.")
+
+        self._values[lexeme] = value

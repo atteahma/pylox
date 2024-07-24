@@ -18,9 +18,12 @@ def _exit_with_message(message: str) -> Never:
 
 def _get_input() -> tuple[str, str | None]:
     if len(sys.argv) not in (2, 3):
-        _exit_with_message(
-            "Usage: ./your_program.sh <command> <filename> or ./your_program.sh <command>"
+        usage_parts = (
+            "Usage:",
+            "./your_program.sh <command> <filename>",
+            "./your_program.sh <command>",
         )
+        _exit_with_message("\n".join(usage_parts))
 
     command = sys.argv[1] if len(sys.argv) >= 2 else None
     filename = sys.argv[2] if len(sys.argv) >= 3 else None
@@ -33,7 +36,12 @@ def _get_input() -> tuple[str, str | None]:
     return command, filename
 
 
-def _run(logger: Logger, interpreter: Interpreter, command: Command, text: str) -> None:
+def _run(
+    logger: Logger,
+    interpreter: Interpreter,
+    command: Command,
+    text: str,
+) -> None:
     scanner = Scanner(logger, text)
     tokens = scanner.scan_tokens()
 

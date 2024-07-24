@@ -1,5 +1,6 @@
 from app import util
 from app.expression import (
+    AssignExpr,
     BinaryExpr,
     Expr,
     GroupingExpr,
@@ -43,6 +44,9 @@ class AstPrinter(ExprVisitor[str]):
 
     def visit_variable_expr(self, expr: VariableExpr) -> str:
         return expr.name.lexeme
+
+    def visit_assign_expr(self, expr: AssignExpr) -> str:
+        return self._parenthesize(expr.name.lexeme, expr.value_expr)
 
     def print(self, expr: Expr) -> str:
         value = expr.accept(self)

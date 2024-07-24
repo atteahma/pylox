@@ -92,7 +92,7 @@ class VariableExpr(Expr):
 @dataclass
 class AssignExpr(Expr):
     name: Token
-    value: Expr
+    value_expr: Expr
 
     def accept(self, visitor: ExprVisitor[R]) -> R:
         return visitor.visit_assign_expr(self)
