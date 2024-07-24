@@ -42,6 +42,8 @@ class Scanner:
         self._line = 1
 
     def scan_tokens(self) -> list[Token]:
+        self._tokens = []
+
         while not self._is_at_end():
             # We are at the beginning of the next lexeme.
             self._start = self._current
@@ -89,7 +91,7 @@ class Scanner:
             self._advance()
 
         if self._is_at_end():
-            self._logger.log_error(self._line, "Unterminated string.")
+            self._logger.scanner_error(self._line, "Unterminated string.")
             return
 
         # Advance past closing "
@@ -184,4 +186,4 @@ class Scanner:
             case _ if util.is_alpha(char, underscore_allowed=True):
                 self._identifier()
             case _:
-                self._logger.log_error(self._line, f"Unexpected character: {char}")
+                self._logger.scanner_error(self._line, f"Unexpected character: {char}")

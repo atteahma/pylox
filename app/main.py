@@ -1,6 +1,7 @@
 import sys
 from typing import Never
 
+from app.ast_printer import AstPrinter
 from app.logger import Logger
 from app.parser import Parser
 from app.scanner import Scanner
@@ -39,6 +40,12 @@ def _run(logger: Logger, command: Command, text: str) -> None:
         return
 
     parser = Parser(logger, tokens)
+    expression = parser.parse()
+
+    if command == Command.PARSE:
+        ast_printer = AstPrinter()
+        ast_printer.print(expression)
+        return
 
 
 def main():
