@@ -24,6 +24,9 @@ class StmtVisitor(Generic[R], ABC):
     @abstractmethod
     def visit_if_stmt(self, stmt: "IfStmt") -> R: ...
 
+    @abstractmethod
+    def visit_while_stmt(self, stmt: "WhileStmt") -> R: ...
+
 
 class Stmt(ABC):
     @abstractmethod
@@ -71,3 +74,26 @@ class IfStmt(Stmt):
 
     def accept(self, visitor: StmtVisitor[R]) -> R:
         return visitor.visit_if_stmt(self)
+
+
+@dataclass
+class WhileStmt(Stmt):
+    condition: Expr
+    body: Stmt
+
+    def accept(self, visitor: StmtVisitor[R]) -> R:
+        return visitor.visit_while_stmt(self)
+
+
+"""
+statement      → exprStmt
+               | forStmt
+               | ifStmt
+               | printStmt
+               | whileStmt
+               | block ;
+
+forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
+                 expression? ";"
+                 expression? ")" statement ;
+"""

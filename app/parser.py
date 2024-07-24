@@ -12,7 +12,15 @@ from app.expression import (
 )
 from app.logger import Logger
 from app.schema import Token, TokenType
-from app.statement import BlockStmt, ExpressionStmt, IfStmt, PrintStmt, Stmt, VarStmt
+from app.statement import (
+    BlockStmt,
+    ExpressionStmt,
+    IfStmt,
+    PrintStmt,
+    Stmt,
+    VarStmt,
+    WhileStmt,
+)
 
 
 class Parser:
@@ -124,15 +132,69 @@ class Parser:
             return self._if_statement()
         if self._match(TokenType.PRINT):
             return self._print_statement()
+        if self._match(TokenType.FOR):
+            return self._for_statement()
+        if self._match(TokenType.WHILE):
+            return self._while_statement()
         if self._match(TokenType.LEFT_BRACE):
             return self._block_statement()
 
         return self._expression_statement()
 
-    def _if_statement(self) -> IfStmt:
-        self._consume(TokenType.LEFT_PAREN, "")
+    def _for_statement(self) -> Stmt:
+        def get_initializer() -> Stmt | None:
+            if self._match(TokenType.VAR):
+                return self._var_declaration()
+            elif self._match(TokenType.SEMICOLON):
+                return None
+
+            return self._expression_statement()
+
+        def get_condition() -> Expr:
+            condition: Expr = LiteralExpr(True)
+            if not self._check(TokenType.SEMICOLON):
+                condition = self._expression()
+            self._consume(TokenType.SEMICOLON, "Expect ';' after loop condition")
+
+            return condition
+
+        def get_increment() -> Expr | None:
+            increment = None
+            if not self._check(TokenType.RIGHT_PAREN):
+                increment = self._expression()
+
+            return increment
+
+        # get parts
+        self._consume(TokenType.LEFT_PAREN, "Expect '(' after 'for'")
+        initializer = get_initializer()
+        condition = get_condition()
+        increment = get_increment()
+        self._consume(TokenType.RIGHT_PAREN, "Expect ')' after for clauses")
+        body = self._statement()
+
+        # put together desugared loop
+        if increment is not None:
+            body = BlockStmt([body, ExpressionStmt(increment)])
+        loop: Stmt = WhileStmt(condition, body)
+        if initializer is not None:
+            loop = BlockStmt([initializer, loop])
+
+        return loop
+
+    def _while_statement(self) -> WhileStmt:
+        self._consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.")
         condition = self._expression()
-        self._consume(TokenType.RIGHT_PAREN, "")
+        self._consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.")
+
+        body = self._statement()
+
+        return WhileStmt(condition, body)
+
+    def _if_statement(self) -> IfStmt:
+        self._consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.")
+        condition = self._expression()
+        self._consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.")
 
         then_stmt = self._statement()
 

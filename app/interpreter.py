@@ -25,6 +25,7 @@ from app.statement import (
     Stmt,
     StmtVisitor,
     VarStmt,
+    WhileStmt,
 )
 
 
@@ -192,3 +193,7 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
             self._execute(stmt.then_stmt)
         elif stmt.else_stmt is not None:
             self._execute(stmt.else_stmt)
+
+    def visit_while_stmt(self, stmt: WhileStmt) -> None:
+        while util.is_truthy(self._evaluate(stmt.condition)):
+            self._execute(stmt.body)
