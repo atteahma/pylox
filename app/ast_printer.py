@@ -1,3 +1,4 @@
+from app import util
 from app.expression import (
     BinaryExpr,
     Expr,
@@ -31,14 +32,7 @@ class AstPrinter(Visitor[str]):
         return self._parenthesize("group", expr.expr)
 
     def visitLiteralExpr(self, expr: LiteralExpr) -> str:
-        if expr.value is None:
-            return "nil"
-        if expr.value is True:
-            return "true"
-        if expr.value is False:
-            return "false"
-
-        return str(expr.value)
+        return util.stringify(expr.value, double_to_int=False)
 
     def visitUnaryExpr(self, expr: UnaryExpr) -> str:
         return self._parenthesize(expr.operator.lexeme, expr.expr)

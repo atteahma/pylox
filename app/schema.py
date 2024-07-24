@@ -85,3 +85,4 @@ class Result(Generic[ResultValue]):
 class Command(StrEnum):
     TOKENIZE = auto()
     PARSE = auto()
+    INTERPRET = auto()

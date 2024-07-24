@@ -2,12 +2,13 @@ import sys
 from typing import Never
 
 from app.ast_printer import AstPrinter
+from app.interpreter import Interpreter
 from app.logger import Logger
 from app.parser import Parser
 from app.scanner import Scanner
 from app.schema import Command
 
-COMMANDS = {Command.TOKENIZE, Command.PARSE}
+COMMANDS = {Command.TOKENIZE, Command.PARSE, Command.INTERPRET}
 
 
 def _exit_with_message(message: str) -> Never:
@@ -32,7 +33,7 @@ def _get_input() -> tuple[str, str | None]:
     return command, filename
 
 
-def _run(logger: Logger, command: Command, text: str) -> None:
+def _run(logger: Logger, interpreter: Interpreter, command: Command, text: str) -> None:
     scanner = Scanner(logger, text)
     tokens = scanner.scan_tokens()
 
@@ -58,27 +59,33 @@ def _run(logger: Logger, command: Command, text: str) -> None:
         ast_printer.print(expression)
         return
 
+    interpreter.interpret(expression)
+
 
 def _run_file(command: Command, filename: str) -> None:
     with open(filename) as file:
         file_contents = file.read()
 
     logger = Logger()
-    _run(logger, command, file_contents)
+    interpreter = Interpreter(logger)
+    _run(logger, interpreter, command, file_contents)
 
     if logger.had_error:
         exit(65)
+    if logger.had_runtime_error:
+        exit(70)
 
 
 def _run_prompt(command: Command) -> None:
     logger = Logger()
+    interpreter = Interpreter(logger)
 
     while True:
         text = input("> ")
         if not text:
-            break
+            continue
 
-        _run(logger, command, text)
+        _run(logger, interpreter, command, text)
 
         logger.reset()
 
