@@ -72,6 +72,27 @@ class Parser:
 
         return ParserError()
 
+    def _synchronize(self) -> None:
+        self._advance()
+
+        while not self._is_at_end():
+            if self._peek(offset=-1).type_ == TokenType.SEMICOLON:
+                return
+
+            if self._peek().type_ in (
+                TokenType.CLASS,
+                TokenType.FUN,
+                TokenType.VAR,
+                TokenType.FOR,
+                TokenType.IF,
+                TokenType.WHILE,
+                TokenType.PRINT,
+                TokenType.RETURN,
+            ):
+                return
+
+            self._advance()
+
     def _expression(self) -> Expr:
         expr = self._equality()
 
