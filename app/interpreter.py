@@ -1,6 +1,7 @@
 from collections.abc import Sequence
 from typing import Any
 from app import util
+from app.environment import Environment
 from app.errors import InterpreterError
 from app.expression import (
     BinaryExpr,
@@ -44,9 +45,11 @@ def _check_number_or_string_operands(token: Token, left: Any, right: Any) -> Non
 
 class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
     _logger: Logger
+    _environment: Environment
 
     def __init__(self, _logger: Logger):
         self._logger = _logger
+        self._environment = Environment()
 
     def interpret(self, statements: Sequence[Stmt]) -> None:
         try:
@@ -124,7 +127,7 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
         return self._evaluate(expr.false_expr)
 
     def visit_variable_expr(self, expr: VariableExpr) -> Any:
-        pass
+        return self._environment.get(expr.name)
 
     def visit_expression_stmt(self, stmt: ExpressionStmt) -> None:
         self._evaluate(stmt.expr)
@@ -134,4 +137,8 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
         print(util.stringify(value))
 
     def visit_var_stmt(self, stmt: VarStmt) -> None:
-        pass
+        value = None
+        if stmt.initializer is not None:
+            value = self._evaluate(stmt.initializer)
+
+        self._environment.define(stmt.name.lexeme, value)

@@ -43,7 +43,7 @@ class PrintStmt(Stmt):
 @dataclass
 class VarStmt(Stmt):
     name: Token
-    expr: Expr | None
+    initializer: Expr | None
 
     def accept(self, visitor: StmtVisitor[R]) -> R:
         return visitor.visit_var_stmt(self)
