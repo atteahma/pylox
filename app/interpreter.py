@@ -8,7 +8,7 @@ from app.expression import (
     LiteralExpr,
     TernaryExpr,
     UnaryExpr,
-    Visitor,
+    ExprVisitor,
 )
 from app.logger import Logger
 from app.schema import Token, TokenType
@@ -39,7 +39,7 @@ def _check_number_or_string_operands(token: Token, left: Any, right: Any) -> Non
     )
 
 
-class Interpreter(Visitor[Any]):
+class Interpreter(ExprVisitor[Any]):
     _logger: Logger
 
     def __init__(self, _logger: Logger):

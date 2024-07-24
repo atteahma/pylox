@@ -8,7 +8,7 @@ from app.schema import Token
 R = TypeVar("R", covariant=True)
 
 
-class Visitor(Generic[R], ABC):
+class ExprVisitor(Generic[R], ABC):
     @abstractmethod
     def visitBinaryExpr(self, expr: "BinaryExpr") -> R: ...
 
@@ -27,7 +27,7 @@ class Visitor(Generic[R], ABC):
 
 class Expr(ABC):
     @abstractmethod
-    def accept(self, visitor: Visitor[R]) -> R: ...
+    def accept(self, visitor: ExprVisitor[R]) -> R: ...
 
 
 @dataclass
@@ -36,7 +36,7 @@ class BinaryExpr(Expr):
     operator: Token
     right: Expr
 
-    def accept(self, visitor: Visitor[R]) -> R:
+    def accept(self, visitor: ExprVisitor[R]) -> R:
         return visitor.visitBinaryExpr(self)
 
 
@@ -46,7 +46,7 @@ class TernaryExpr(Expr):
     true_expr: Expr
     false_expr: Expr
 
-    def accept(self, visitor: Visitor[R]) -> R:
+    def accept(self, visitor: ExprVisitor[R]) -> R:
         return visitor.visitTernaryExpr(self)
 
 
@@ -54,7 +54,7 @@ class TernaryExpr(Expr):
 class GroupingExpr(Expr):
     expr: Expr
 
-    def accept(self, visitor: Visitor[R]) -> R:
+    def accept(self, visitor: ExprVisitor[R]) -> R:
         return visitor.visitGroupingExpr(self)
 
 
@@ -62,7 +62,7 @@ class GroupingExpr(Expr):
 class LiteralExpr(Expr):
     value: Any
 
-    def accept(self, visitor: Visitor[R]) -> R:
+    def accept(self, visitor: ExprVisitor[R]) -> R:
         return visitor.visitLiteralExpr(self)
 
 
@@ -71,5 +71,5 @@ class UnaryExpr(Expr):
     operator: Token
     expr: Expr
 
-    def accept(self, visitor: Visitor[R]) -> R:
+    def accept(self, visitor: ExprVisitor[R]) -> R:
         return visitor.visitUnaryExpr(self)

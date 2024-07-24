@@ -6,11 +6,11 @@ from app.expression import (
     LiteralExpr,
     TernaryExpr,
     UnaryExpr,
-    Visitor,
+    ExprVisitor,
 )
 
 
-class AstPrinter(Visitor[str]):
+class AstPrinter(ExprVisitor[str]):
     def _parenthesize(self, name: str, *exprs: Expr) -> str:
         parts = []
 
