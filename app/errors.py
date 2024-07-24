@@ -1,13 +1,13 @@
 from app.schema import Token
 
 
-class CustomError(BaseException): ...
+class LoxError(BaseException): ...
 
 
-class ParserError(CustomError): ...
+class LoxParserError(LoxError): ...
 
 
-class InterpreterError(CustomError):
+class LoxRuntimeError(LoxError):
     token: Token
     message: str
 
@@ -17,7 +17,10 @@ class InterpreterError(CustomError):
         self.message = _message
 
 
-class FlowException(BaseException):
+class LoxException(BaseException): ...
+
+
+class LoxFlowException(LoxException):
     token: Token
 
     def __init__(self, _token: Token) -> None:

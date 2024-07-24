@@ -1,4 +1,4 @@
-from app.errors import InterpreterError
+from app.errors import LoxRuntimeError
 from app.schema import LoxObject, Token
 
 
@@ -23,7 +23,7 @@ class Environment:
         if self._enclosing is not None:
             return self._enclosing.get(name)
 
-        raise InterpreterError(name, "Undefined variable '" + lexeme + "'.")
+        raise LoxRuntimeError(name, "Undefined variable '" + lexeme + "'.")
 
     def assign(self, name: Token, value: LoxObject) -> None:
         lexeme = name.lexeme
@@ -36,4 +36,4 @@ class Environment:
             self._enclosing.assign(name, value)
             return
 
-        raise InterpreterError(name, "Undefined variable '" + lexeme + "'.")
+        raise LoxRuntimeError(name, "Undefined variable '" + lexeme + "'.")

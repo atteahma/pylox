@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from app.errors import ParserError
+from app.errors import LoxParserError
 from app.expression import (
     AssignExpr,
     BinaryExpr,
@@ -52,7 +52,7 @@ class Parser:
     def parse_expression(self) -> Expr | None:
         try:
             return self._expression()
-        except ParserError:
+        except LoxParserError:
             pass
 
         return None
@@ -94,11 +94,11 @@ class Parser:
             message,
         )
 
-    def _error(self, token: Token, message: str) -> ParserError:
+    def _error(self, token: Token, message: str) -> LoxParserError:
         where = "end" if token.type_ == TokenType.EOF else f"'{token.lexeme}'"
         self._logger.report(token.line, f" at {where}", message)
 
-        return ParserError()
+        return LoxParserError()
 
     def _synchronize(self) -> None:
         self._advance()
@@ -127,7 +127,7 @@ class Parser:
                 return self._var_declaration()
 
             return self._statement()
-        except ParserError:
+        except LoxParserError:
             self._synchronize()
             return None
 

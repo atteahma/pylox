@@ -1,15 +1,17 @@
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import StrEnum, auto
-from typing import Generic, Protocol, TypeVar, TYPE_CHECKING
+from typing import Generic, TypeVar, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from app.interpreter import Interpreter
 
 
-class LoxCallable(Protocol):
+class LoxCallable(ABC):
+    @abstractmethod
     def call(
         self, interpreter: Interpreter, arguments: Sequence[LoxObject]
     ) -> LoxObject: ...

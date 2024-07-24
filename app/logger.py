@@ -1,6 +1,6 @@
 import sys
 
-from app.errors import InterpreterError
+from app.errors import LoxRuntimeError
 
 
 class Logger:
@@ -16,7 +16,7 @@ class Logger:
         log_str = f"[line {line}] Error{where}: {message}"
         print(log_str, file=sys.stderr)
 
-    def report_runtime(self, error: InterpreterError) -> None:
+    def report_runtime(self, error: LoxRuntimeError) -> None:
         log_str = f"{error.message}\n[line {error.token.line}])"
         print(log_str, file=sys.stderr)
 

@@ -2,7 +2,7 @@ from collections.abc import Sequence
 from typing import Protocol, cast
 from app import util
 from app.environment import Environment
-from app.errors import FlowException, InterpreterError
+from app.errors import LoxFlowException, LoxRuntimeError
 from app.expression import (
     AssignExpr,
     BinaryExpr,
@@ -35,7 +35,7 @@ def _validate_number_operand(token: Token, operand: LoxObject) -> float:
     if isinstance(operand, float):
         return operand
 
-    raise InterpreterError(token, f"Operand to {token.lexeme} must be a number.")
+    raise LoxRuntimeError(token, f"Operand to {token.lexeme} must be a number.")
 
 
 def _validate_number_operands(
@@ -44,7 +44,7 @@ def _validate_number_operands(
     if isinstance(left, float) and isinstance(right, float):
         return left, right
 
-    raise InterpreterError(token, f"Operands to {token.lexeme} must be numbers.")
+    raise LoxRuntimeError(token, f"Operands to {token.lexeme} must be numbers.")
 
 
 def _validate_number_or_string_operands(
@@ -55,7 +55,7 @@ def _validate_number_or_string_operands(
     if isinstance(left, str) and isinstance(right, str):
         return left, right
 
-    raise InterpreterError(
+    raise LoxRuntimeError(
         token, f"Operands to {token.lexeme} must be numbers or strings."
     )
 
@@ -73,9 +73,9 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
             try:
                 for statement in statements:
                     self._execute(statement)
-            except FlowException as exc:
-                raise InterpreterError(exc.token, "Flow statement used outside loop.")
-        except InterpreterError as err:
+            except LoxFlowException as exc:
+                raise LoxRuntimeError(exc.token, "Flow statement used outside loop.")
+        except LoxRuntimeError as err:
             self._logger.report_runtime(err)
 
     def _execute(self, statement: Stmt) -> None:
@@ -180,10 +180,11 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
         return self._evaluate(expr.right)
 
     def visit_call_expr(self, expr: CallExpr) -> LoxObject:
-        callee = self._evaluate(expr.callee)
+        func = self._evaluate(expr.callee)
         arguments = [self._evaluate(arg) for arg in expr.arguments]
 
-        func = cast(LoxCallable, callee)
+        if not isinstance(func, LoxCallable):
+            raise LoxRuntimeError(expr.paren, "Can only call functions and classes.")
 
         return func.call(self, arguments)
 
@@ -217,7 +218,7 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
         while util.is_truthy(self._evaluate(stmt.condition)):
             try:
                 self._execute(stmt.body)
-            except FlowException as exc:
+            except LoxFlowException as exc:
                 if exc.token.type_ == TokenType.BREAK:
                     break
                 elif exc.token.type_ == TokenType.CONTINUE:
@@ -226,4 +227,4 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
                 raise exc
 
     def visit_flow_stmt(self, stmt: FlowStmt) -> None:
-        raise FlowException(stmt.token)
+        raise LoxFlowException(stmt.token)
