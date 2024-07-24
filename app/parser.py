@@ -27,11 +27,16 @@ class Parser:
     def parse(self) -> list[Stmt]:
         statements = []
 
-        while not self._is_at_end():
-            statement = self._statement()
-            statements.append(statement)
+        try:
+            while not self._is_at_end():
+                statement = self._statement()
+                statements.append(statement)
 
-        return statements
+            return statements
+        except ParserError as e:
+            pass
+
+        return []
 
     def _peek(self, *, offset: int = 0) -> Token:
         index = self._current + offset

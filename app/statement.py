@@ -9,7 +9,7 @@ R = TypeVar("R", covariant=True)
 
 class StmtVisitor(Generic[R], ABC):
     @abstractmethod
-    def visitExprStmt(self, stmt: "ExpressionStmt") -> R: ...
+    def visitExpressionStmt(self, stmt: "ExpressionStmt") -> R: ...
 
     @abstractmethod
     def visitPrintStmt(self, expr: "PrintStmt") -> R: ...
@@ -25,7 +25,7 @@ class ExpressionStmt(Stmt):
     expr: Expr
 
     def accept(self, visitor: StmtVisitor[R]) -> R:
-        return visitor.visitExprStmt(self)
+        return visitor.visitExpressionStmt(self)
 
 
 @dataclass

@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from typing import Any
 from app import util
 from app.errors import InterpreterError
@@ -12,6 +13,7 @@ from app.expression import (
 )
 from app.logger import Logger
 from app.schema import Token, TokenType
+from app.statement import ExpressionStmt, PrintStmt, Stmt, StmtVisitor
 
 
 def _check_number_operand(token: Token, operand: Any) -> None:
@@ -39,21 +41,24 @@ def _check_number_or_string_operands(token: Token, left: Any, right: Any) -> Non
     )
 
 
-class Interpreter(ExprVisitor[Any]):
+class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
     _logger: Logger
 
     def __init__(self, _logger: Logger):
         self._logger = _logger
 
-    def interpret(self, expr: Expr) -> None:
+    def interpret(self, statements: Sequence[Stmt]) -> None:
         try:
-            value = self._evaluate(expr)
-            print(util.stringify(value))
+            for statement in statements:
+                self._execute(statement)
         except InterpreterError as err:
-            print(err)
+            self._logger.report_runtime(err)
 
-    def _evaluate(self, expr: Expr) -> Any:
-        return expr.accept(self)
+    def _execute(self, statement: Stmt) -> None:
+        statement.accept(self)
+
+    def _evaluate(self, expression: Expr) -> Any:
+        return expression.accept(self)
 
     def visitBinaryExpr(self, expr: BinaryExpr) -> Any:
         left = self._evaluate(expr.left)
@@ -116,3 +121,10 @@ class Interpreter(ExprVisitor[Any]):
             return self._evaluate(expr.true_expr)
 
         return self._evaluate(expr.false_expr)
+
+    def visitExpressionStmt(self, stmt: ExpressionStmt) -> None:
+        self._evaluate(stmt.expr)
+
+    def visitPrintStmt(self, stmt: PrintStmt) -> None:
+        value = self._evaluate(stmt.expr)
+        print(util.stringify(value))
