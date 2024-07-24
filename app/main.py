@@ -34,12 +34,12 @@ def _run(logger: Logger, command: Command, text: str) -> None:
     scanner = Scanner(logger, text)
     tokens = scanner.scan_tokens()
 
-    if logger.had_error:
-        return
-
     if command == Command.TOKENIZE:
         for token in tokens:
             print(token)
+        return
+
+    if logger.had_error:
         return
 
     parser = Parser(logger, tokens)

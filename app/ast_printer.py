@@ -32,6 +32,11 @@ class AstPrinter(Visitor[str]):
     def visitLiteralExpr(self, expr: LiteralExpr) -> str:
         if expr.value is None:
             return "nil"
+        if expr.value is True:
+            return "true"
+        if expr.value is False:
+            return "false"
+
         return str(expr.value)
 
     def visitUnaryExpr(self, expr: UnaryExpr) -> str:
