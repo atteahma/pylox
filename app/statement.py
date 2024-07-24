@@ -27,6 +27,9 @@ class StmtVisitor(Generic[R], ABC):
     @abstractmethod
     def visit_while_stmt(self, stmt: "WhileStmt") -> R: ...
 
+    @abstractmethod
+    def visit_flow_stmt(self, stmt: "FlowStmt") -> R: ...
+
 
 class Stmt(ABC):
     @abstractmethod
@@ -85,15 +88,9 @@ class WhileStmt(Stmt):
         return visitor.visit_while_stmt(self)
 
 
-"""
-statement      → exprStmt
-               | forStmt
-               | ifStmt
-               | printStmt
-               | whileStmt
-               | block ;
+@dataclass
+class FlowStmt(Stmt):
+    token: Token
 
-forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
-                 expression? ";"
-                 expression? ")" statement ;
-"""
+    def accept(self, visitor: StmtVisitor[R]) -> R:
+        return visitor.visit_flow_stmt(self)

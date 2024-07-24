@@ -15,6 +15,7 @@ from app.schema import Token, TokenType
 from app.statement import (
     BlockStmt,
     ExpressionStmt,
+    FlowStmt,
     IfStmt,
     PrintStmt,
     Stmt,
@@ -138,8 +139,15 @@ class Parser:
             return self._while_statement()
         if self._match(TokenType.LEFT_BRACE):
             return self._block_statement()
+        if self._match(TokenType.BREAK, TokenType.CONTINUE):
+            return self._flow_statement()
 
         return self._expression_statement()
+
+    def _flow_statement(self) -> FlowStmt:
+        token = self._peek(offset=-1)
+        self._consume(TokenType.SEMICOLON, f"Expect ';' after {token.lexeme}")
+        return FlowStmt(token)
 
     def _for_statement(self) -> Stmt:
         def get_initializer() -> Stmt | None:

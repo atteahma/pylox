@@ -2,7 +2,7 @@ from collections.abc import Sequence
 from typing import Any
 from app import util
 from app.environment import Environment
-from app.errors import InterpreterError
+from app.errors import FlowException, InterpreterError
 from app.expression import (
     AssignExpr,
     BinaryExpr,
@@ -20,6 +20,7 @@ from app.schema import Token, TokenType
 from app.statement import (
     BlockStmt,
     ExpressionStmt,
+    FlowStmt,
     IfStmt,
     PrintStmt,
     Stmt,
@@ -64,8 +65,11 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
 
     def interpret(self, statements: Sequence[Stmt]) -> None:
         try:
-            for statement in statements:
-                self._execute(statement)
+            try:
+                for statement in statements:
+                    self._execute(statement)
+            except FlowException as exc:
+                raise InterpreterError(exc.token, "Flow statement used outside loop.")
         except InterpreterError as err:
             self._logger.report_runtime(err)
 
@@ -196,4 +200,15 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
 
     def visit_while_stmt(self, stmt: WhileStmt) -> None:
         while util.is_truthy(self._evaluate(stmt.condition)):
-            self._execute(stmt.body)
+            try:
+                self._execute(stmt.body)
+            except FlowException as exc:
+                if exc.token.type_ == TokenType.BREAK:
+                    break
+                elif exc.token.type_ == TokenType.CONTINUE:
+                    continue
+
+                raise InterpreterError(exc.token, "Unknown flow exception raised")
+
+    def visit_flow_stmt(self, stmt: FlowStmt) -> None:
+        raise FlowException(stmt.token)

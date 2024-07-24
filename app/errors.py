@@ -15,3 +15,10 @@ class InterpreterError(CustomError):
         super().__init__(_message)
         self.token = _token
         self.message = _message
+
+
+class FlowException(BaseException):
+    token: Token
+
+    def __init__(self, _token: Token) -> None:
+        self.token = _token

@@ -57,6 +57,8 @@ class TokenType(StrEnum):
     TRUE = auto()
     VAR = auto()
     WHILE = auto()
+    BREAK = auto()
+    CONTINUE = auto()
 
     EOF = auto()
 
