@@ -16,7 +16,7 @@ from app.expression import (
     VariableExpr,
 )
 from app.logger import Logger
-from app.schema import LoxObject, Token, TokenType
+from app.schema import Token, TokenType
 from app.statement import (
     BlockStmt,
     ExpressionStmt,
@@ -30,7 +30,7 @@ from app.statement import (
 )
 
 
-def _validate_number_operand(token: Token, operand: LoxObject) -> float:
+def _validate_number_operand(token: Token, operand: object) -> float:
     if isinstance(operand, float):
         return operand
 
@@ -38,7 +38,7 @@ def _validate_number_operand(token: Token, operand: LoxObject) -> float:
 
 
 def _validate_number_operands(
-    token: Token, left: LoxObject, right: LoxObject
+    token: Token, left: object, right: object
 ) -> tuple[float, float]:
     if isinstance(left, float) and isinstance(right, float):
         return left, right
@@ -47,7 +47,7 @@ def _validate_number_operands(
 
 
 def _validate_number_or_string_operands(
-    token: Token, left: LoxObject, right: LoxObject
+    token: Token, left: object, right: object
 ) -> tuple[float, float] | tuple[str, str]:
     if isinstance(left, float) and isinstance(right, float):
         return left, right
@@ -59,7 +59,7 @@ def _validate_number_or_string_operands(
     )
 
 
-class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
+class Interpreter(ExprVisitor[object], StmtVisitor[None]):
     _logger: Logger
     _environment: Environment
 
@@ -93,10 +93,10 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
         finally:
             self._environment = previous
 
-    def _evaluate(self, expression: Expr) -> LoxObject:
+    def _evaluate(self, expression: Expr) -> object:
         return expression.accept(self)
 
-    def visit_binary_expr(self, expr: BinaryExpr) -> LoxObject:
+    def visit_binary_expr(self, expr: BinaryExpr) -> object:
         left = self._evaluate(expr.left)
         right = self._evaluate(expr.right)
 
@@ -134,13 +134,13 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
 
         return None
 
-    def visit_grouping_expr(self, expr: GroupingExpr) -> LoxObject:
+    def visit_grouping_expr(self, expr: GroupingExpr) -> object:
         return self._evaluate(expr.expr)
 
-    def visit_literal_expr(self, expr: LiteralExpr) -> LoxObject:
+    def visit_literal_expr(self, expr: LiteralExpr) -> object:
         return expr.value
 
-    def visit_unary_expr(self, expr: UnaryExpr) -> LoxObject:
+    def visit_unary_expr(self, expr: UnaryExpr) -> object:
         value = self._evaluate(expr.expr)
 
         match (expr.operator.type_):
@@ -152,7 +152,7 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
 
         return None
 
-    def visit_ternary_expr(self, expr: TernaryExpr) -> LoxObject:
+    def visit_ternary_expr(self, expr: TernaryExpr) -> object:
         condition = self._evaluate(expr.condition)
 
         if util.is_truthy(condition):
@@ -160,15 +160,15 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
 
         return self._evaluate(expr.false_expr)
 
-    def visit_variable_expr(self, expr: VariableExpr) -> LoxObject:
+    def visit_variable_expr(self, expr: VariableExpr) -> object:
         return self._environment.get(expr.name)
 
-    def visit_assign_expr(self, expr: AssignExpr) -> LoxObject:
+    def visit_assign_expr(self, expr: AssignExpr) -> object:
         value = self._evaluate(expr.value_expr)
         self._environment.assign(expr.name, value)
         return value
 
-    def visit_logical_expr(self, expr: LogicalExpr) -> LoxObject:
+    def visit_logical_expr(self, expr: LogicalExpr) -> object:
         left = self._evaluate(expr.left)
 
         if expr.operator.type_ == TokenType.OR and util.is_truthy(left):
@@ -178,7 +178,7 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
 
         return self._evaluate(expr.right)
 
-    def visit_call_expr(self, expr: CallExpr) -> LoxObject:
+    def visit_call_expr(self, expr: CallExpr) -> object:
         func = self._evaluate(expr.callee)
         arguments = [self._evaluate(arg) for arg in expr.arguments]
 

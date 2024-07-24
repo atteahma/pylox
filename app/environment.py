@@ -1,22 +1,20 @@
-from typing import Any
-
 from app.errors import InterpreterError
 from app.schema import Token
 
 
 class Environment:
-    _values: dict[str, Any] = {}
+    _values: dict[str, object] = {}
     _enclosing: "Environment | None"
 
     def __init__(self, enclosing: "Environment | None" = None) -> None:
         self._values = {}
         self._enclosing = enclosing
 
-    def define(self, name: Token, value: Any) -> None:
+    def define(self, name: Token, value: object) -> None:
         lexeme = name.lexeme
         self._values[lexeme] = value
 
-    def get(self, name: Token) -> Any:
+    def get(self, name: Token) -> object:
         lexeme = name.lexeme
 
         if lexeme in self._values:
@@ -27,7 +25,7 @@ class Environment:
 
         raise InterpreterError(name, "Undefined variable '" + lexeme + "'.")
 
-    def assign(self, name: Token, value: Any) -> None:
+    def assign(self, name: Token, value: object) -> None:
         lexeme = name.lexeme
 
         if lexeme in self._values:

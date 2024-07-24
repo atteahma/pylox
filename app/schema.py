@@ -63,14 +63,11 @@ class TokenType(StrEnum):
     EOF = auto()
 
 
-LoxObject = float | bool | str | None
-
-
 @dataclass
 class Token:
     type_: TokenType
     lexeme: str
-    literal: LoxObject
+    literal: object
     line: int
 
     def __repr__(self) -> str:
