@@ -7,6 +7,7 @@ from app.expression import (
     TernaryExpr,
     UnaryExpr,
     ExprVisitor,
+    VariableExpr,
 )
 
 
@@ -39,6 +40,9 @@ class AstPrinter(ExprVisitor[str]):
 
     def visit_ternary_expr(self, expr: TernaryExpr) -> str:
         return self._parenthesize("?", expr.condition, expr.true_expr, expr.false_expr)
+
+    def visit_variable_expr(self, expr: VariableExpr) -> str:
+        return expr.name.lexeme
 
     def print(self, expr: Expr) -> str:
         value = expr.accept(self)

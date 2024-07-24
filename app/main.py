@@ -46,15 +46,18 @@ def _run(logger: Logger, interpreter: Interpreter, command: Command, text: str) 
         return
 
     parser = Parser(logger, tokens)
+
+    if command == Command.PARSE:
+        expression = parser.parse_expression()
+        ast_printer = AstPrinter()
+        if expression is not None:
+            ast_printer.print(expression)
+        return
+
     statements = parser.parse()
 
     if logger.had_error:
         return
-
-    # if command == Command.PARSE:
-    #     ast_printer = AstPrinter()
-    #     ast_printer.print(statements)
-    #     return
 
     interpreter.interpret(statements)
 

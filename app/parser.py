@@ -36,6 +36,14 @@ class Parser:
 
         return statements
 
+    def parse_expression(self) -> Expr | None:
+        try:
+            return self._expression()
+        except ParserError:
+            pass
+
+        return None
+
     def _peek(self, *, offset: int = 0) -> Token:
         index = self._current + offset
         return self._tokens[index]
