@@ -16,8 +16,11 @@ class Parser:
         self._tokens = list(_tokens)
         self._current = 0
 
-    def parse(self) -> Expr:
-        raise NotImplementedError()
+    def parse(self) -> Expr | None:
+        try:
+            return self._expression()
+        except ParserError:
+            return None
 
     def _peek(self, *, offset: int = 0) -> Token:
         index = self._current + offset
@@ -133,4 +136,4 @@ class Parser:
             self._consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.")
             return GroupingExpr(expr)
 
-        raise ValueError()
+        raise self._error(self._peek(), "Expect expression.")

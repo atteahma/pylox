@@ -34,6 +34,9 @@ def _run(logger: Logger, command: Command, text: str) -> None:
     scanner = Scanner(logger, text)
     tokens = scanner.scan_tokens()
 
+    if logger.had_error:
+        return
+
     if command == Command.TOKENIZE:
         for token in tokens:
             print(token)
@@ -41,6 +44,12 @@ def _run(logger: Logger, command: Command, text: str) -> None:
 
     parser = Parser(logger, tokens)
     expression = parser.parse()
+
+    if logger.had_error:
+        return
+
+    # this should hold if logger.had_error = False
+    assert expression is not None
 
     if command == Command.PARSE:
         ast_printer = AstPrinter()
