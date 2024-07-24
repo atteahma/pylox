@@ -1,5 +1,4 @@
 from collections.abc import Sequence
-from typing import Protocol, cast
 from app import util
 from app.environment import Environment
 from app.errors import LoxFlowException, LoxRuntimeError
@@ -17,7 +16,7 @@ from app.expression import (
     VariableExpr,
 )
 from app.logger import Logger
-from app.schema import LoxCallable, LoxObject, Token, TokenType
+from app.schema import LoxCallable, LoxObject, TokenType
 from app.statement import (
     BlockStmt,
     ExpressionStmt,
@@ -29,35 +28,7 @@ from app.statement import (
     VarStmt,
     WhileStmt,
 )
-
-
-def _validate_number_operand(token: Token, operand: LoxObject) -> float:
-    if isinstance(operand, float):
-        return operand
-
-    raise LoxRuntimeError(token, f"Operand to {token.lexeme} must be a number.")
-
-
-def _validate_number_operands(
-    token: Token, left: LoxObject, right: LoxObject
-) -> tuple[float, float]:
-    if isinstance(left, float) and isinstance(right, float):
-        return left, right
-
-    raise LoxRuntimeError(token, f"Operands to {token.lexeme} must be numbers.")
-
-
-def _validate_number_or_string_operands(
-    token: Token, left: LoxObject, right: LoxObject
-) -> tuple[float, float] | tuple[str, str]:
-    if isinstance(left, float) and isinstance(right, float):
-        return left, right
-    if isinstance(left, str) and isinstance(right, str):
-        return left, right
-
-    raise LoxRuntimeError(
-        token, f"Operands to {token.lexeme} must be numbers or strings."
-    )
+from app import validate
 
 
 class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
@@ -103,30 +74,30 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
 
         match (expr.operator.type_):
             case TokenType.MINUS:
-                left, right = _validate_number_operands(expr.operator, left, right)
+                left, right = validate.number_operands(expr.operator, left, right)
                 return left - right
             case TokenType.STAR:
-                left, right = _validate_number_operands(expr.operator, left, right)
+                left, right = validate.number_operands(expr.operator, left, right)
                 return left * right
             case TokenType.SLASH:
-                left, right = _validate_number_operands(expr.operator, left, right)
+                left, right = validate.number_operands(expr.operator, left, right)
                 return left / right
             case TokenType.PLUS:
-                left_right = _validate_number_or_string_operands(
+                left_right = validate.number_or_string_operands(
                     expr.operator, left, right
                 )
                 return util.add(*left_right)
             case TokenType.LESS:
-                left, right = _validate_number_operands(expr.operator, left, right)
+                left, right = validate.number_operands(expr.operator, left, right)
                 return left < right
             case TokenType.LESS_EQUAL:
-                left, right = _validate_number_operands(expr.operator, left, right)
+                left, right = validate.number_operands(expr.operator, left, right)
                 return left <= right
             case TokenType.GREATER:
-                left, right = _validate_number_operands(expr.operator, left, right)
+                left, right = validate.number_operands(expr.operator, left, right)
                 return left > right
             case TokenType.GREATER_EQUAL:
-                left, right = _validate_number_operands(expr.operator, left, right)
+                left, right = validate.number_operands(expr.operator, left, right)
                 return left >= right
             case TokenType.BANG_EQUAL:
                 return not util.is_equal(left, right)
@@ -146,7 +117,7 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
 
         match (expr.operator.type_):
             case TokenType.MINUS:
-                value = _validate_number_operand(expr.operator, value)
+                value = validate.number_operand(expr.operator, value)
                 return -1 * value
             case TokenType.BANG:
                 return not util.is_truthy(value)
@@ -185,6 +156,11 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
 
         if not isinstance(func, LoxCallable):
             raise LoxRuntimeError(expr.paren, "Can only call functions and classes.")
+
+        if func.arity != len(arguments):
+            raise LoxRuntimeError(
+                expr.paren, f"Expected {func.arity} arguments but got {len(arguments)}."
+            )
 
         return func.call(self, arguments)
 

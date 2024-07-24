@@ -11,6 +11,8 @@ if TYPE_CHECKING:
 
 
 class LoxCallable(ABC):
+    arity: int
+
     @abstractmethod
     def call(
         self, interpreter: Interpreter, arguments: Sequence[LoxObject]

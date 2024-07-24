@@ -124,10 +124,3 @@ class CallExpr(Expr):
 
     def accept(self, visitor: ExprVisitor[R]) -> R:
         return visitor.visit_call_expr(self)
-
-
-"""
-unary          → ( "!" | "-" ) unary | call ;
-call           → primary ( "(" arguments? ")" )* ;
-arguments      → expression ( "," expression )* ;
-"""

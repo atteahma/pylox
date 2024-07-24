@@ -1,12 +1,14 @@
+from __future__ import annotations
+
 from app.errors import LoxRuntimeError
 from app.schema import LoxObject, Token
 
 
 class Environment:
-    _values: dict[str, LoxObject] = {}
-    _enclosing: "Environment | None"
+    _values: dict[str, LoxObject]
+    _enclosing: Environment | None
 
-    def __init__(self, enclosing: "Environment | None" = None) -> None:
+    def __init__(self, enclosing: Environment | None = None) -> None:
         self._values = {}
         self._enclosing = enclosing
 
