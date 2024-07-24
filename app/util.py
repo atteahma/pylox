@@ -32,7 +32,7 @@ def is_alphanumeric(
 
 def is_truthy(value: Any) -> bool:
     if value is None:
-        return True
+        return False
     if type(value) is bool:
         return value
 

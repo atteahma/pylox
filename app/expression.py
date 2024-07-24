@@ -30,6 +30,9 @@ class ExprVisitor(Generic[R], ABC):
     @abstractmethod
     def visit_assign_expr(self, expr: "AssignExpr") -> R: ...
 
+    @abstractmethod
+    def visit_logical_expr(self, expr: "LogicalExpr") -> R: ...
+
 
 class Expr(ABC):
     @abstractmethod
@@ -96,3 +99,13 @@ class AssignExpr(Expr):
 
     def accept(self, visitor: ExprVisitor[R]) -> R:
         return visitor.visit_assign_expr(self)
+
+
+@dataclass
+class LogicalExpr(Expr):
+    left: Expr
+    operator: Token
+    right: Expr
+
+    def accept(self, visitor: ExprVisitor[R]) -> R:
+        return visitor.visit_logical_expr(self)

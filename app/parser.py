@@ -6,6 +6,7 @@ from app.expression import (
     Expr,
     GroupingExpr,
     LiteralExpr,
+    LogicalExpr,
     UnaryExpr,
     VariableExpr,
 )
@@ -182,7 +183,7 @@ class Parser:
         return self._assignment()
 
     def _assignment(self) -> Expr:
-        expr = self._equality()
+        expr = self._or()
 
         if self._match(TokenType.EQUAL):
             equals = self._peek(offset=-1)
@@ -193,6 +194,26 @@ class Parser:
                 return AssignExpr(name, value)
 
             self._error(equals, "Invalid assignment target.")
+
+        return expr
+
+    def _or(self) -> Expr:
+        expr = self._and()
+
+        while self._match(TokenType.OR):
+            operator = self._peek(offset=-1)
+            right = self._and()
+            expr = LogicalExpr(expr, operator, right)
+
+        return expr
+
+    def _and(self) -> Expr:
+        expr = self._equality()
+
+        while self._match(TokenType.AND):
+            operator = self._peek(offset=-1)
+            right = self._equality()
+            expr = LogicalExpr(expr, operator, right)
 
         return expr
 

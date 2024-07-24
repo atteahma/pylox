@@ -9,6 +9,7 @@ from app.expression import (
     Expr,
     GroupingExpr,
     LiteralExpr,
+    LogicalExpr,
     TernaryExpr,
     UnaryExpr,
     ExprVisitor,
@@ -155,6 +156,16 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
         value = self._evaluate(expr.value_expr)
         self._environment.assign(expr.name, value)
         return value
+
+    def visit_logical_expr(self, expr: LogicalExpr) -> Any:
+        left = self._evaluate(expr.left)
+
+        if expr.operator.type_ == TokenType.OR and util.is_truthy(left):
+            return left
+        if expr.operator.type_ == TokenType.AND and not util.is_truthy(left):
+            return left
+
+        return self._evaluate(expr.right)
 
     def visit_expression_stmt(self, stmt: ExpressionStmt) -> None:
         self._evaluate(stmt.expr)
