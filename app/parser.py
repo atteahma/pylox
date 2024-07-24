@@ -11,7 +11,7 @@ from app.expression import (
 )
 from app.logger import Logger
 from app.schema import Token, TokenType
-from app.statement import ExpressionStmt, PrintStmt, Stmt, VarStmt
+from app.statement import BlockStmt, ExpressionStmt, IfStmt, PrintStmt, Stmt, VarStmt
 
 
 class Parser:
@@ -119,12 +119,46 @@ class Parser:
             return None
 
     def _statement(self) -> Stmt:
+        if self._match(TokenType.IF):
+            return self._if_statement()
         if self._match(TokenType.PRINT):
             return self._print_statement()
+        if self._match(TokenType.LEFT_BRACE):
+            return self._block_statement()
 
         return self._expression_statement()
 
-    def _var_declaration(self) -> Stmt:
+    def _if_statement(self) -> IfStmt:
+        self._consume(TokenType.LEFT_PAREN, "")
+        condition = self._expression()
+        self._consume(TokenType.RIGHT_PAREN, "")
+
+        then_stmt = self._statement()
+
+        else_stmt = None
+        if self._match(TokenType.ELSE):
+            else_stmt = self._statement()
+
+        return IfStmt(condition, then_stmt, else_stmt)
+
+    def _block_statement(self) -> BlockStmt:
+        return BlockStmt(self._block())
+
+    def _block(self) -> list[Stmt]:
+        statements = []
+
+        while not self._is_at_end() and not self._check(TokenType.RIGHT_BRACE):
+            statement = self._declaration()
+            if statement is None:
+                continue
+
+            statements.append(statement)
+
+        self._consume(TokenType.RIGHT_BRACE, "Expect '}' after block.")
+
+        return statements
+
+    def _var_declaration(self) -> VarStmt:
         name = self._consume(TokenType.IDENTIFIER, "Expect variable name.")
 
         initializer = None
@@ -134,12 +168,12 @@ class Parser:
         self._consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.")
         return VarStmt(name, initializer)
 
-    def _print_statement(self) -> Stmt:
+    def _print_statement(self) -> PrintStmt:
         expr = self._expression()
         self._consume(TokenType.SEMICOLON, "Expect ';' after value.")
         return PrintStmt(expr)
 
-    def _expression_statement(self) -> Stmt:
+    def _expression_statement(self) -> ExpressionStmt:
         expr = self._expression()
         self._consume(TokenType.SEMICOLON, "Expect ';' after expression.")
         return ExpressionStmt(expr)
@@ -215,7 +249,7 @@ class Parser:
 
         return self._primary()
 
-    def _primary(self) -> Expr:
+    def _primary(self) -> LiteralExpr | VariableExpr | GroupingExpr:
         if self._match(TokenType.TRUE):
             return LiteralExpr(True)
         if self._match(TokenType.FALSE):

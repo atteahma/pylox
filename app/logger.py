@@ -17,7 +17,7 @@ class Logger:
         print(log_str, file=sys.stderr)
 
     def report_runtime(self, error: InterpreterError) -> None:
-        log_str = f'{error.message}\n[line " + {error.token.line} + "]")'
+        log_str = f"{error.message}\n[line {error.token.line}])"
         print(log_str, file=sys.stderr)
 
     def reset(self) -> None:

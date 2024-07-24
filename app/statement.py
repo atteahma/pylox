@@ -18,6 +18,12 @@ class StmtVisitor(Generic[R], ABC):
     @abstractmethod
     def visit_var_stmt(self, stmt: "VarStmt") -> R: ...
 
+    @abstractmethod
+    def visit_block_stmt(self, stmt: "BlockStmt") -> R: ...
+
+    @abstractmethod
+    def visit_if_stmt(self, stmt: "IfStmt") -> R: ...
+
 
 class Stmt(ABC):
     @abstractmethod
@@ -47,3 +53,21 @@ class VarStmt(Stmt):
 
     def accept(self, visitor: StmtVisitor[R]) -> R:
         return visitor.visit_var_stmt(self)
+
+
+@dataclass
+class BlockStmt(Stmt):
+    statements: list[Stmt]
+
+    def accept(self, visitor: StmtVisitor[R]) -> R:
+        return visitor.visit_block_stmt(self)
+
+
+@dataclass
+class IfStmt(Stmt):
+    condition: Expr
+    then_stmt: Stmt
+    else_stmt: Stmt | None
+
+    def accept(self, visitor: StmtVisitor[R]) -> R:
+        return visitor.visit_if_stmt(self)

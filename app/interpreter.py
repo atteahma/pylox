@@ -16,7 +16,15 @@ from app.expression import (
 )
 from app.logger import Logger
 from app.schema import Token, TokenType
-from app.statement import ExpressionStmt, PrintStmt, Stmt, StmtVisitor, VarStmt
+from app.statement import (
+    BlockStmt,
+    ExpressionStmt,
+    IfStmt,
+    PrintStmt,
+    Stmt,
+    StmtVisitor,
+    VarStmt,
+)
 
 
 def _check_number_operand(token: Token, operand: Any) -> None:
@@ -61,6 +69,19 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
 
     def _execute(self, statement: Stmt) -> None:
         statement.accept(self)
+
+    def _execute_block(
+        self, statements: Sequence[Stmt], environment: Environment
+    ) -> None:
+        previous = self._environment
+
+        try:
+            self._environment = environment
+
+            for statement in statements:
+                self._execute(statement)
+        finally:
+            self._environment = previous
 
     def _evaluate(self, expression: Expr) -> Any:
         return expression.accept(self)
@@ -148,3 +169,15 @@ class Interpreter(ExprVisitor[Any], StmtVisitor[None]):
             value = self._evaluate(stmt.initializer)
 
         self._environment.define(stmt.name, value)
+
+    def visit_block_stmt(self, stmt: BlockStmt) -> None:
+        environment = Environment(enclosing=self._environment)
+        self._execute_block(stmt.statements, environment)
+
+    def visit_if_stmt(self, stmt: IfStmt) -> None:
+        condition = self._evaluate(stmt.condition)
+
+        if util.is_truthy(condition):
+            self._execute(stmt.then_stmt)
+        elif stmt.else_stmt is not None:
+            self._execute(stmt.else_stmt)
