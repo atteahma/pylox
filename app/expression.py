@@ -21,6 +21,9 @@ class Visitor(Generic[R], ABC):
     @abstractmethod
     def visitUnaryExpr(self, expr: "UnaryExpr") -> R: ...
 
+    @abstractmethod
+    def visitTernaryExpr(self, expr: "TernaryExpr") -> R: ...
+
 
 class Expr(ABC):
     @abstractmethod
@@ -35,6 +38,16 @@ class BinaryExpr(Expr):
 
     def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visitBinaryExpr(self)
+
+
+@dataclass
+class TernaryExpr(Expr):
+    condition: Expr
+    true_expr: Expr
+    false_expr: Expr
+
+    def accept(self, visitor: Visitor[R]) -> R:
+        return visitor.visitTernaryExpr(self)
 
 
 @dataclass

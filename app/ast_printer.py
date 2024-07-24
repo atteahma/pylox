@@ -3,6 +3,7 @@ from app.expression import (
     Expr,
     GroupingExpr,
     LiteralExpr,
+    TernaryExpr,
     UnaryExpr,
     Visitor,
 )
@@ -41,6 +42,9 @@ class AstPrinter(Visitor[str]):
 
     def visitUnaryExpr(self, expr: UnaryExpr) -> str:
         return self._parenthesize(expr.operator.lexeme, expr.expr)
+
+    def visitTernaryExpr(self, expr: TernaryExpr) -> str:
+        return self._parenthesize("?", expr.condition, expr.true_expr, expr.false_expr)
 
     def print(self, expr: Expr) -> str:
         value = expr.accept(self)

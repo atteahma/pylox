@@ -1,6 +1,13 @@
 from collections.abc import Sequence
 from app.errors import ParserError
-from app.expression import BinaryExpr, Expr, GroupingExpr, LiteralExpr, UnaryExpr
+from app.expression import (
+    BinaryExpr,
+    Expr,
+    GroupingExpr,
+    LiteralExpr,
+    TernaryExpr,
+    UnaryExpr,
+)
 from app.logger import Logger
 from app.schema import Token, TokenType
 
@@ -66,7 +73,16 @@ class Parser:
         return ParserError()
 
     def _expression(self) -> Expr:
-        return self._equality()
+        expr = self._equality()
+
+        if self._match(TokenType.QUESTION):
+            true_expr = self._expression()
+            self._consume(TokenType.COLON, "Missing expressions for ternarny.")
+            false_expr = self._expression()
+
+            return TernaryExpr(expr, true_expr, false_expr)
+
+        return expr
 
     def _equality(self) -> Expr:
         expr = self._comparison()

@@ -170,6 +170,10 @@ class Scanner:
                 self._add_token(TokenType.GREATER_EQUAL)
             case ">":
                 self._add_token(TokenType.GREATER)
+            case "?":
+                self._add_token(TokenType.QUESTION)
+            case ":":
+                self._add_token(TokenType.COLON)
             case "/" if self._match("/"):
                 # Advance until the end of the line
                 while self._peek() != "\n" and not self._is_at_end():

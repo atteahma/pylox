@@ -19,6 +19,9 @@ class TokenType(StrEnum):
     SLASH = auto()
     STAR = auto()
 
+    QUESTION = auto()
+    COLON = auto()
+
     # One or two character tokens.
     BANG = auto()
     BANG_EQUAL = auto()
