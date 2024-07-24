@@ -12,3 +12,6 @@ class Logger:
 
         log_str = f"[line {line}] Error{where}: {message}"
         print(log_str, file=sys.stderr)
+
+    def reset(self) -> None:
+        self.had_error = False

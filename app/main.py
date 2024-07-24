@@ -16,11 +16,13 @@ def _exit_with_message(message: str) -> Never:
 
 
 def _get_input() -> tuple[str, str | None]:
-    if len(sys.argv) < 3:
-        _exit_with_message("Usage: ./your_program.sh tokenize <filename>")
+    if len(sys.argv) not in (2, 3):
+        _exit_with_message(
+            "Usage: ./your_program.sh <command> <filename> or ./your_program.sh <command>"
+        )
 
-    command = sys.argv[1] if len(sys.argv) >= 1 else None
-    filename = sys.argv[2] if len(sys.argv) >= 2 else None
+    command = sys.argv[1] if len(sys.argv) >= 2 else None
+    filename = sys.argv[2] if len(sys.argv) >= 3 else None
 
     if command is None:
         _exit_with_message("Command is required")
@@ -57,9 +59,7 @@ def _run(logger: Logger, command: Command, text: str) -> None:
         return
 
 
-def main():
-    command, filename = _get_input()
-
+def _run_file(command: Command, filename: str) -> None:
     with open(filename) as file:
         file_contents = file.read()
 
@@ -70,5 +70,30 @@ def main():
         exit(65)
 
 
+def _run_prompt(command: Command) -> None:
+    logger = Logger()
+
+    while True:
+        text = input("> ")
+        if not text:
+            break
+
+        _run(logger, command, text)
+
+        logger.reset()
+
+
+def main():
+    command, filename = _get_input()
+
+    if filename is None:
+        _run_prompt(command)
+    else:
+        _run_file(command, filename)
+
+
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("Got interrupt, exiting...")
