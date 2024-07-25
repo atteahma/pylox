@@ -226,7 +226,7 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
         raise LoxLoopException(stmt.token)
 
     def visit_function_stmt(self, stmt: FunctionStmt) -> None:
-        func = LoxFunction(stmt)
+        func = LoxFunction(stmt, self._environment)
         self._environment.define(stmt.name.lexeme, func)
 
     def visit_return_stmt(self, stmt: ReturnStmt) -> None:

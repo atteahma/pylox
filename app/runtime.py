@@ -30,9 +30,11 @@ LoxObject = LoxCallable | float | str | bool | None
 
 class LoxFunction(LoxCallable):
     _declaration: FunctionStmt
+    _closure: Environment
 
-    def __init__(self, declaration: FunctionStmt) -> None:
+    def __init__(self, declaration: FunctionStmt, closure: Environment) -> None:
         self._declaration = declaration
+        self._closure = closure
 
     def call(
         self, interpreter: Interpreter, arguments: Sequence[LoxObject]
@@ -40,7 +42,7 @@ class LoxFunction(LoxCallable):
         parameters = self._declaration.params
         body = self._declaration.body
 
-        environment = Environment(interpreter.globals)
+        environment = Environment(self._closure)
         for parameter, argument in zip(parameters, arguments):
             environment.define(parameter.lexeme, argument)
 
