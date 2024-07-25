@@ -20,6 +20,7 @@ from app.statement import (
     FunctionStmt,
     IfStmt,
     PrintStmt,
+    ReturnStmt,
     Stmt,
     VarStmt,
     WhileStmt,
@@ -35,7 +36,6 @@ class Parser:
 
     def __init__(self, logger: Logger, tokens: Sequence[Token]) -> None:
         self._logger = logger
-
         self._tokens = list(tokens)
         self._current = 0
 
@@ -165,6 +165,8 @@ class Parser:
             return self._if_statement()
         if self._match(TokenType.PRINT):
             return self._print_statement()
+        if self._match(TokenType.RETURN):
+            return self._return_statement()
         if self._match(TokenType.FOR):
             return self._for_statement()
         if self._match(TokenType.WHILE):
@@ -175,6 +177,17 @@ class Parser:
             return self._flow_statement()
 
         return self._expression_statement()
+
+    def _return_statement(self) -> ReturnStmt:
+        token = self._peek(offset=-1)
+
+        value = None
+        if not self._check(TokenType.SEMICOLON):
+            value = self._expression()
+
+        self._consume(TokenType.SEMICOLON, "Expect ';' after return value.")
+
+        return ReturnStmt(token, value)
 
     def _flow_statement(self) -> FlowStmt:
         token = self._peek(offset=-1)

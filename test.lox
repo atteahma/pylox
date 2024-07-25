@@ -1,10 +1,16 @@
-for (var i = 0; i < 8; i = i + 1) {
-  for (var j = 0; j < 8; j = j + 1) {
-    var pair = i * 10 + j;
-    print pair;
-
-    if (j >= i) {
-      break;
-    }
-  }
+fun fib(n) {
+  if (n <= 1) return n;
+  return fib(n - 2) + fib(n - 1);
 }
+
+var start_time = clock();
+
+for (var i = 0; i < 20; i = i + 1) {
+  print fib(i);
+}
+
+var end_time = clock();
+
+print "";
+print "Time: ";
+print end_time - start_time;

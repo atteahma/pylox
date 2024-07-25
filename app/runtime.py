@@ -5,6 +5,7 @@ from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 from app.environment import Environment
+from app.errors import LoxReturnException
 
 if TYPE_CHECKING:
     from app.interpreter import Interpreter
@@ -33,7 +34,9 @@ class LoxFunction(LoxCallable):
     def __init__(self, declaration: FunctionStmt) -> None:
         self._declaration = declaration
 
-    def call(self, interpreter: Interpreter, arguments: Sequence[LoxObject]) -> None:
+    def call(
+        self, interpreter: Interpreter, arguments: Sequence[LoxObject]
+    ) -> LoxObject:
         parameters = self._declaration.params
         body = self._declaration.body
 
@@ -41,7 +44,12 @@ class LoxFunction(LoxCallable):
         for parameter, argument in zip(parameters, arguments):
             environment.define(parameter.lexeme, argument)
 
-        interpreter.execute_block(body, environment)
+        try:
+            interpreter.execute_block(body, environment)
+        except LoxReturnException as ret:
+            return ret.value
+
+        return None
 
     def arity(self) -> int:
         return len(self._declaration.params)

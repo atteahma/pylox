@@ -35,6 +35,9 @@ class StmtVisitor(Generic[R], ABC):
     @abstractmethod
     def visit_function_stmt(self, stmt: FunctionStmt) -> R: ...
 
+    @abstractmethod
+    def visit_return_stmt(self, stmt: ReturnStmt) -> R: ...
+
 
 class Stmt(ABC):
     @abstractmethod
@@ -109,3 +112,12 @@ class FunctionStmt(Stmt):
 
     def accept(self, visitor: StmtVisitor[R]) -> R:
         return visitor.visit_function_stmt(self)
+
+
+@dataclass
+class ReturnStmt(Stmt):
+    keyword: Token
+    value: Expr | None
+
+    def accept(self, visitor: StmtVisitor[R]) -> R:
+        return visitor.visit_return_stmt(self)

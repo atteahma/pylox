@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from app import builtins, util
 from app.environment import Environment
-from app.errors import LoxFlowException, LoxRuntimeError
+from app.errors import LoxLoopException, LoxReturnException, LoxRuntimeError
 from app.expression import (
     AssignExpr,
     BinaryExpr,
@@ -25,6 +25,7 @@ from app.statement import (
     FunctionStmt,
     IfStmt,
     PrintStmt,
+    ReturnStmt,
     Stmt,
     StmtVisitor,
     VarStmt,
@@ -54,7 +55,7 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
             try:
                 for statement in statements:
                     self._execute_mode(statement)
-            except LoxFlowException as exc:
+            except LoxLoopException as exc:
                 raise LoxRuntimeError(exc.token, "Flow statement used outside loop.")
         except LoxRuntimeError as err:
             self._logger.report_runtime(err)
@@ -213,7 +214,7 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
         while util.is_truthy(self._evaluate(stmt.condition)):
             try:
                 self._execute(stmt.body)
-            except LoxFlowException as exc:
+            except LoxLoopException as exc:
                 if exc.token.type_ == TokenType.BREAK:
                     break
                 elif exc.token.type_ == TokenType.CONTINUE:
@@ -222,8 +223,15 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
                 raise exc
 
     def visit_flow_stmt(self, stmt: FlowStmt) -> None:
-        raise LoxFlowException(stmt.token)
+        raise LoxLoopException(stmt.token)
 
     def visit_function_stmt(self, stmt: FunctionStmt) -> None:
         func = LoxFunction(stmt)
         self._environment.define(stmt.name.lexeme, func)
+
+    def visit_return_stmt(self, stmt: ReturnStmt) -> None:
+        value: LoxObject = None
+        if stmt.value is not None:
+            value = self._evaluate(stmt.value)
+
+        raise LoxReturnException(stmt.keyword, value)
