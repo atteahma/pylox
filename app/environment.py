@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from app.errors import LoxRuntimeError
 from app.schema import Token
-from app.runtime import LoxObject
+
+if TYPE_CHECKING:
+    from app.runtime import LoxObject
 
 
 class Environment:

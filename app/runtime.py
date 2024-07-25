@@ -4,21 +4,21 @@ from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
-from app.statement import FunctionStmt
-
+from app.environment import Environment
 
 if TYPE_CHECKING:
     from app.interpreter import Interpreter
+    from app.statement import FunctionStmt
 
 
 class LoxCallable(ABC):
     @abstractmethod
-    def arity(self) -> int: ...
-
-    @abstractmethod
     def call(
         self, interpreter: Interpreter, arguments: Sequence[LoxObject]
     ) -> LoxObject: ...
+
+    @abstractmethod
+    def arity(self) -> int: ...
 
     @abstractmethod
     def __str__(self) -> str: ...
@@ -32,3 +32,19 @@ class LoxFunction(LoxCallable):
 
     def __init__(self, declaration: FunctionStmt) -> None:
         self._declaration = declaration
+
+    def call(self, interpreter: Interpreter, arguments: Sequence[LoxObject]) -> None:
+        parameters = self._declaration.params
+        body = self._declaration.body
+
+        environment = Environment(interpreter.globals)
+        for parameter, argument in zip(parameters, arguments):
+            environment.define(parameter.lexeme, argument)
+
+        interpreter.execute_block(body, environment)
+
+    def arity(self) -> int:
+        return len(self._declaration.params)
+
+    def __str__(self) -> str:
+        return f"<fn {self._declaration.name.lexeme}>"

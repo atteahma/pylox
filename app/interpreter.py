@@ -17,7 +17,7 @@ from app.expression import (
 )
 from app.logger import Logger
 from app.schema import OpMode, TokenType
-from app.runtime import LoxCallable, LoxObject
+from app.runtime import LoxCallable, LoxFunction, LoxObject
 from app.statement import (
     BlockStmt,
     ExpressionStmt,
@@ -34,8 +34,9 @@ from app import validate
 
 
 class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
+    globals: Environment
+
     _logger: Logger
-    _globals: Environment
     _environment: Environment
     _op_mode: OpMode
 
@@ -43,10 +44,10 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
         self._logger = logger
         self._op_mode = op_mode
 
-        self._globals = Environment()
-        self._environment = self._globals
+        self.globals = Environment()
+        self._environment = self.globals
 
-        self._globals.define("clock", builtins.Clock())
+        self.globals.define("clock", builtins.Clock())
 
     def interpret(self, statements: Sequence[Stmt]) -> None:
         try:
@@ -69,7 +70,7 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
     def _execute(self, statement: Stmt) -> None:
         statement.accept(self)
 
-    def _execute_block(
+    def execute_block(
         self, statements: Sequence[Stmt], environment: Environment
     ) -> None:
         previous = self._environment
@@ -174,9 +175,10 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
         if not isinstance(func, LoxCallable):
             raise LoxRuntimeError(expr.paren, "Can only call functions and classes.")
 
-        if func.arity != len(arguments):
+        if func.arity() != len(arguments):
             raise LoxRuntimeError(
-                expr.paren, f"Expected {func.arity} arguments but got {len(arguments)}."
+                expr.paren,
+                f"Expected {func.arity()} arguments but got {len(arguments)}.",
             )
 
         return func.call(self, arguments)
@@ -197,7 +199,7 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
 
     def visit_block_stmt(self, stmt: BlockStmt) -> None:
         environment = Environment(enclosing=self._environment)
-        self._execute_block(stmt.statements, environment)
+        self.execute_block(stmt.statements, environment)
 
     def visit_if_stmt(self, stmt: IfStmt) -> None:
         condition = self._evaluate(stmt.condition)
@@ -223,4 +225,5 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
         raise LoxFlowException(stmt.token)
 
     def visit_function_stmt(self, stmt: FunctionStmt) -> None:
-        raise NotImplementedError()
+        func = LoxFunction(stmt)
+        self._environment.define(stmt.name.lexeme, func)
