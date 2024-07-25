@@ -16,7 +16,7 @@ from app.expression import (
     VariableExpr,
 )
 from app.logger import Logger
-from app.schema import LoxCallable, LoxObject, TokenType
+from app.schema import LoxCallable, LoxObject, OpMode, TokenType
 from app.statement import (
     BlockStmt,
     ExpressionStmt,
@@ -35,9 +35,12 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
     _logger: Logger
     _globals: Environment
     _environment: Environment
+    _op_mode: OpMode
 
-    def __init__(self, _logger: Logger):
+    def __init__(self, _logger: Logger, _op_mode: OpMode):
         self._logger = _logger
+        self._op_mode = _op_mode
+
         self._globals = Environment()
         self._environment = self._globals
 
@@ -47,11 +50,19 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
         try:
             try:
                 for statement in statements:
-                    self._execute(statement)
+                    self._execute_mode(statement)
             except LoxFlowException as exc:
                 raise LoxRuntimeError(exc.token, "Flow statement used outside loop.")
         except LoxRuntimeError as err:
             self._logger.report_runtime(err)
+
+    def _execute_mode(self, statement: Stmt) -> None:
+        if self._op_mode == OpMode.REPL and isinstance(statement, ExpressionStmt):
+            value = self._evaluate(statement.expr)
+            print(util.stringify(value))
+            return
+
+        self._execute(statement)
 
     def _execute(self, statement: Stmt) -> None:
         statement.accept(self)

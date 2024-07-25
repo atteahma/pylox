@@ -111,3 +111,8 @@ class Command(StrEnum):
     TOKENIZE = auto()
     PARSE = auto()
     INTERPRET = auto()
+
+
+class OpMode(StrEnum):
+    REPL = auto()
+    PROGRAM = auto()

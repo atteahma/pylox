@@ -6,7 +6,7 @@ from app.interpreter import Interpreter
 from app.logger import Logger
 from app.parser import Parser
 from app.scanner import Scanner
-from app.schema import Command
+from app.schema import Command, OpMode
 
 COMMANDS = {Command.TOKENIZE, Command.PARSE, Command.INTERPRET}
 
@@ -75,7 +75,7 @@ def _run_file(command: Command, filename: str) -> None:
         file_contents = file.read()
 
     logger = Logger()
-    interpreter = Interpreter(logger)
+    interpreter = Interpreter(logger, OpMode.PROGRAM)
     _run(logger, interpreter, command, file_contents)
 
     if logger.had_error:
@@ -86,7 +86,7 @@ def _run_file(command: Command, filename: str) -> None:
 
 def _run_prompt(command: Command) -> None:
     logger = Logger()
-    interpreter = Interpreter(logger)
+    interpreter = Interpreter(logger, OpMode.REPL)
 
     while True:
         text = input("> ")
