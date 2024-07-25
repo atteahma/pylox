@@ -1,3 +1,4 @@
+import sys
 from app import util
 from app.expression import (
     AssignExpr,
@@ -58,5 +59,5 @@ class AstPrinter(ExprVisitor[str]):
 
     def print(self, expr: Expr) -> str:
         value = expr.accept(self)
-        print(value)
+        print(value, file=sys.stdout)
         return value

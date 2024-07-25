@@ -118,4 +118,4 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print("Got interrupt, exiting...")
+        print("Got interrupt, exiting...", file=sys.stdout)

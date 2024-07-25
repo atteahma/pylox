@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+import sys
 from app import builtins, util
 from app.environment import Environment
 from app.errors import LoxLoopException, LoxReturnException, LoxRuntimeError
@@ -63,7 +64,7 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
     def _execute_mode(self, statement: Stmt) -> None:
         if self._op_mode == OpMode.REPL and isinstance(statement, ExpressionStmt):
             value = self._evaluate(statement.expr)
-            print(util.stringify(value))
+            print(util.stringify(value), file=sys.stdout)
             return
 
         self._execute(statement)
@@ -189,7 +190,7 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
 
     def visit_print_stmt(self, stmt: PrintStmt) -> None:
         value = self._evaluate(stmt.expr)
-        print(util.stringify(value))
+        print(util.stringify(value), file=sys.stdout)
 
     def visit_var_stmt(self, stmt: VarStmt) -> None:
         value = None
