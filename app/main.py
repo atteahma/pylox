@@ -70,18 +70,25 @@ def _run(
     interpreter.interpret(statements)
 
 
-def _run_file(command: Command, filename: str) -> None:
-    with open(filename) as file:
-        file_contents = file.read()
-
+def run_text(command: Command, text: str) -> int:
     logger = Logger()
     interpreter = Interpreter(logger, OpMode.PROGRAM)
-    _run(logger, interpreter, command, file_contents)
+    _run(logger, interpreter, command, text)
 
     if logger.had_error:
-        exit(65)
+        return 65
     if logger.had_runtime_error:
-        exit(70)
+        return 70
+
+    return 0
+
+
+def _run_file(command: Command, filename: str) -> Never:
+    with open(filename) as file:
+        text = file.read()
+
+    exit_code = run_text(command, text)
+    exit(exit_code)
 
 
 def _run_prompt(command: Command) -> None:
