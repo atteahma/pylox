@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from app.errors import LoxRuntimeError
-from app.schema import LoxObject, Token
+from app.schema import Token
+from app.runtime import LoxObject
 
 
 class Environment:

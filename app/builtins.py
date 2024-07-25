@@ -1,9 +1,10 @@
 from __future__ import annotations
+
 from collections.abc import Sequence
 import time
 from typing import TYPE_CHECKING
 
-from app.schema import LoxCallable, LoxObject
+from app.runtime import LoxCallable, LoxObject
 
 if TYPE_CHECKING:
     from app.interpreter import Interpreter

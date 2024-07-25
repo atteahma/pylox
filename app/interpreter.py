@@ -16,7 +16,8 @@ from app.expression import (
     VariableExpr,
 )
 from app.logger import Logger
-from app.schema import LoxCallable, LoxObject, OpMode, TokenType
+from app.schema import OpMode, TokenType
+from app.runtime import LoxCallable, LoxObject
 from app.statement import (
     BlockStmt,
     ExpressionStmt,

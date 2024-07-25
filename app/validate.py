@@ -1,5 +1,6 @@
 from app.errors import LoxRuntimeError
-from app.schema import LoxObject, Token
+from app.schema import Token
+from app.runtime import LoxObject
 
 
 def number_operand(token: Token, operand: LoxObject) -> float:

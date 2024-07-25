@@ -4,7 +4,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Generic, TypeVar
 
-from app.schema import LoxObject, Token
+from app.runtime import LoxObject
+from app.schema import Token
 
 
 R = TypeVar("R", covariant=True)

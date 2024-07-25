@@ -109,13 +109,3 @@ class FunctionStmt(Stmt):
 
     def accept(self, visitor: StmtVisitor[R]) -> R:
         return visitor.visit_function_stmt(self)
-
-
-"""
-declaration    → funDecl
-               | varDecl
-               | statement ;
-funDecl        → "fun" function ;
-function       → IDENTIFIER "(" parameters? ")" block ;
-parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
-"""
