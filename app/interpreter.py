@@ -41,6 +41,7 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
     _logger: Logger
     _environment: Environment
     _op_mode: OpMode
+    _locals: dict[Expr, int]
 
     def __init__(self, logger: Logger, op_mode: OpMode):
         self._logger = logger
@@ -48,6 +49,8 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
 
         self.globals = Environment()
         self._environment = self.globals
+
+        self._locals = {}
 
         self.globals.define("clock", builtins.Clock())
 
@@ -87,6 +90,9 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
 
     def _evaluate(self, expression: Expr) -> LoxObject:
         return expression.accept(self)
+
+    def resolve(self, expr: Expr, depth: int) -> None:
+        self._locals[expr] = depth
 
     def visit_binary_expr(self, expr: BinaryExpr) -> LoxObject:
         left = self._evaluate(expr.left)

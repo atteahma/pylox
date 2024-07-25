@@ -1,4 +1,5 @@
-from typing import Any, TypeVar, Union, cast
+from collections.abc import Iterable
+from typing import Any, Protocol, TypeVar, Union, cast
 
 
 def is_alpha(char: str, *, underscore_allowed: bool = False) -> bool:
@@ -75,3 +76,15 @@ def add(a: ElemType, b: ElemType) -> ElemType:
         return cast(ElemType, a + b)
 
     assert False
+
+
+T = TypeVar("T", covariant=True)
+
+
+class SupportsLenAndGetItem(Protocol[T]):
+    def __len__(self) -> int: ...
+    def __getitem__(self, k: int, /) -> T: ...
+
+
+def reverse_enumerate(iterable: SupportsLenAndGetItem[T]) -> Iterable[tuple[int, T]]:
+    return zip(reversed(range(len(iterable))), reversed(iterable))

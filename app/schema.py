@@ -68,7 +68,7 @@ class TokenType(StrEnum):
     EOF = auto()
 
 
-@dataclass
+@dataclass(frozen=True)
 class Token:
     type_: TokenType
     lexeme: str

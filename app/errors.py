@@ -14,6 +14,9 @@ class LoxError(BaseException): ...
 class LoxParserError(LoxError): ...
 
 
+class LoxResolverError(LoxError): ...
+
+
 class LoxRuntimeError(LoxError):
     token: Token
     message: str
