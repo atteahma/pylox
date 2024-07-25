@@ -116,3 +116,7 @@ class Command(StrEnum):
 class OpMode(StrEnum):
     REPL = auto()
     PROGRAM = auto()
+
+
+class FunctionType(StrEnum):
+    FUNCTION = auto()

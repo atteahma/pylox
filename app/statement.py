@@ -32,6 +32,9 @@ class StmtVisitor(Generic[R], ABC):
     @abstractmethod
     def visit_flow_stmt(self, stmt: FlowStmt) -> R: ...
 
+    @abstractmethod
+    def visit_function_stmt(self, stmt: FunctionStmt) -> R: ...
+
 
 class Stmt(ABC):
     @abstractmethod
@@ -96,3 +99,23 @@ class FlowStmt(Stmt):
 
     def accept(self, visitor: StmtVisitor[R]) -> R:
         return visitor.visit_flow_stmt(self)
+
+
+@dataclass
+class FunctionStmt(Stmt):
+    name: Token
+    params: list[Token]
+    body: list[Stmt]
+
+    def accept(self, visitor: StmtVisitor[R]) -> R:
+        return visitor.visit_function_stmt(self)
+
+
+"""
+declaration    → funDecl
+               | varDecl
+               | statement ;
+funDecl        → "fun" function ;
+function       → IDENTIFIER "(" parameters? ")" block ;
+parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
+"""

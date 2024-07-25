@@ -12,11 +12,12 @@ from app.expression import (
     VariableExpr,
 )
 from app.logger import Logger
-from app.schema import Token, TokenType
+from app.schema import FunctionType, Token, TokenType
 from app.statement import (
     BlockStmt,
     ExpressionStmt,
     FlowStmt,
+    FunctionStmt,
     IfStmt,
     PrintStmt,
     Stmt,
@@ -125,11 +126,39 @@ class Parser:
         try:
             if self._match(TokenType.VAR):
                 return self._var_declaration()
+            if self._match(TokenType.FUN):
+                return self._function(FunctionType.FUNCTION)
 
             return self._statement()
         except LoxParserError:
             self._synchronize()
             return None
+
+    def _function(self, type_: FunctionType) -> FunctionStmt:
+        name = self._consume(TokenType.IDENTIFIER, f"Expect {type_} name.")
+        self._consume(TokenType.LEFT_PAREN, f"Expect '(' after {type_} name.")
+
+        parameters: list[Token] = []
+        if self._check(TokenType.IDENTIFIER):
+            # collect parameters
+            while True:
+                if len(parameters) > MAX_ARG_COUNT:
+                    _message = f"Can't have more than {MAX_ARG_COUNT} parameters."
+                    self._error(self._peek(), _message)
+
+                parameter = self._consume(
+                    TokenType.IDENTIFIER, "Expect parameter name."
+                )
+                parameters.append(parameter)
+
+                if not self._match(TokenType.COMMA):
+                    break
+
+        self._consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.")
+        self._consume(TokenType.LEFT_BRACE, f"Expect '{'{'}' before {type_} body.")
+        body = self._block()
+
+        return FunctionStmt(name, parameters, body)
 
     def _statement(self) -> Stmt:
         if self._match(TokenType.IF):

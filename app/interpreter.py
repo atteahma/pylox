@@ -21,6 +21,7 @@ from app.statement import (
     BlockStmt,
     ExpressionStmt,
     FlowStmt,
+    FunctionStmt,
     IfStmt,
     PrintStmt,
     Stmt,
@@ -219,3 +220,6 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
 
     def visit_flow_stmt(self, stmt: FlowStmt) -> None:
         raise LoxFlowException(stmt.token)
+
+    def visit_function_stmt(self, stmt: FunctionStmt) -> None:
+        raise NotImplementedError()
