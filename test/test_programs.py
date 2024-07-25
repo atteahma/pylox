@@ -89,7 +89,7 @@ def test_closure():
     assert error == ""
 
 
-def test_environments():
+def test_shadowing():
     code = _code(
         """
         var a = "global";
@@ -113,3 +113,41 @@ def test_environments():
 
     assert output.strip() == _lines("global", "global")
     assert error == ""
+
+
+def test_hello_word():
+    code = _code(
+        """
+        var hello = "hello";
+        print hello;
+        print "world";
+        """
+    )
+
+    with _redirect() as (stdout, stderr):
+        assert main.run_text(Command.INTERPRET, code) == 0
+
+        output = stdout.getvalue()
+        error = stderr.getvalue()
+
+    assert output.strip() == _lines("hello", "world")
+    assert error == ""
+
+
+def test_semicolon_error():
+    code = _code(
+        """
+        var hello = "hello";
+        print hello
+        print "world";
+        """
+    )
+
+    with _redirect() as (stdout, stderr):
+        assert main.run_text(Command.INTERPRET, code) == 65
+
+        output = stdout.getvalue()
+        error = stderr.getvalue()
+
+    assert output == ""
+    assert error.strip() == "[line 3] Error at 'print': Expect ';' after value."
