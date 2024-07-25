@@ -5,6 +5,7 @@ from app.ast_printer import AstPrinter
 from app.interpreter import Interpreter
 from app.logger import Logger
 from app.parser import Parser
+from app.resolver import Resolver
 from app.scanner import Scanner
 from app.schema import Command, OpMode
 
@@ -66,6 +67,9 @@ def _run(
 
     if logger.had_error:
         return
+
+    resolver = Resolver(logger, interpreter)
+    resolver.resolve(statements)
 
     interpreter.interpret(statements)
 

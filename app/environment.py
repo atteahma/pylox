@@ -31,6 +31,14 @@ class Environment:
 
         raise LoxRuntimeError(name, "Undefined variable '" + lexeme + "'.")
 
+    def get_level_and_assert(self, name: str) -> LoxObject:
+        assert name in self._values, "Variable not found on get -- resolver mismatch."
+        return self._values[name]
+
+    def get_at(self, distance: int, name: str) -> LoxObject:
+        environment = self._ancestor(distance)
+        return environment.get_level_and_assert(name)
+
     def assign(self, name: Token, value: LoxObject) -> None:
         lexeme = name.lexeme
 
@@ -43,3 +51,23 @@ class Environment:
             return
 
         raise LoxRuntimeError(name, "Undefined variable '" + lexeme + "'.")
+
+    def assign_level_and_assert(self, name: Token, value: LoxObject) -> None:
+        assert (
+            name.lexeme in self._values
+        ), "Variable not found on assign -- resolver mismatch."
+        self._values[name.lexeme] = value
+
+    def assign_at(self, distance: int, name: Token, value: LoxObject) -> None:
+        environment = self._ancestor(distance)
+        environment.assign_level_and_assert(name, value)
+
+    def _ancestor(self, distance: int) -> Environment:
+        environment = self
+        for _ in range(distance):
+            assert (
+                environment._enclosing is not None
+            ), "Environment not found -- resolver mismatch."
+            environment = environment._enclosing
+
+        return environment

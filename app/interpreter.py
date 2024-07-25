@@ -17,7 +17,7 @@ from app.expression import (
     VariableExpr,
 )
 from app.logger import Logger
-from app.schema import OpMode, TokenType
+from app.schema import OpMode, Token, TokenType
 from app.runtime import LoxCallable, LoxFunction, LoxObject
 from app.statement import (
     BlockStmt,
@@ -94,6 +94,14 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
     def resolve(self, expr: Expr, depth: int) -> None:
         self._locals[expr] = depth
 
+    def _look_up_variable(self, name: Token, expr: VariableExpr) -> LoxObject:
+        distance = self._locals.get(expr)
+
+        if distance is None:
+            return self.globals.get(name)
+
+        return self._environment.get_at(distance, name.lexeme)
+
     def visit_binary_expr(self, expr: BinaryExpr) -> LoxObject:
         left = self._evaluate(expr.left)
         right = self._evaluate(expr.right)
@@ -159,11 +167,17 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
         return self._evaluate(expr.false_expr)
 
     def visit_variable_expr(self, expr: VariableExpr) -> LoxObject:
-        return self._environment.get(expr.name)
+        return self._look_up_variable(expr.name, expr)
 
     def visit_assign_expr(self, expr: AssignExpr) -> LoxObject:
         value = self._evaluate(expr.value_expr)
-        self._environment.assign(expr.name, value)
+
+        distance = self._locals.get(expr)
+        if distance is None:
+            self.globals.assign(expr.name, value)
+        else:
+            self._environment.assign_at(distance, expr.name, value)
+
         return value
 
     def visit_logical_expr(self, expr: LogicalExpr) -> LoxObject:
