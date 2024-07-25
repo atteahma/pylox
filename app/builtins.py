@@ -10,11 +10,10 @@ if TYPE_CHECKING:
 
 
 class Clock(LoxCallable):
-    @property
     def arity(self) -> int:
         return 0
 
-    def call(self, interpreter: Interpreter, arguments: Sequence[LoxObject]) -> float:
+    def call(self, _: Interpreter, arguments: Sequence[LoxObject]) -> float:
         return time.time()
 
     def __str__(self) -> str:

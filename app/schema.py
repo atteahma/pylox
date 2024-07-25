@@ -11,7 +11,6 @@ if TYPE_CHECKING:
 
 
 class LoxCallable(ABC):
-    @property
     @abstractmethod
     def arity(self) -> int: ...
 
@@ -19,6 +18,9 @@ class LoxCallable(ABC):
     def call(
         self, interpreter: Interpreter, arguments: Sequence[LoxObject]
     ) -> LoxObject: ...
+
+    @abstractmethod
+    def __str__(self) -> str: ...
 
 
 LoxObject = LoxCallable | float | str | bool | None
