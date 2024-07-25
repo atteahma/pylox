@@ -45,7 +45,7 @@ class Expr(ABC):
     def accept(self, visitor: ExprVisitor[R]) -> R: ...
 
 
-@dataclass
+@dataclass(frozen=True)
 class BinaryExpr(Expr):
     left: Expr
     operator: Token
@@ -55,7 +55,7 @@ class BinaryExpr(Expr):
         return visitor.visit_binary_expr(self)
 
 
-@dataclass
+@dataclass(frozen=True)
 class TernaryExpr(Expr):
     condition: Expr
     true_expr: Expr
@@ -65,7 +65,7 @@ class TernaryExpr(Expr):
         return visitor.visit_ternary_expr(self)
 
 
-@dataclass
+@dataclass(frozen=True)
 class GroupingExpr(Expr):
     expr: Expr
 
@@ -73,7 +73,7 @@ class GroupingExpr(Expr):
         return visitor.visit_grouping_expr(self)
 
 
-@dataclass
+@dataclass(frozen=True)
 class LiteralExpr(Expr):
     value: LoxObject
 
@@ -81,7 +81,7 @@ class LiteralExpr(Expr):
         return visitor.visit_literal_expr(self)
 
 
-@dataclass
+@dataclass(frozen=True)
 class UnaryExpr(Expr):
     operator: Token
     expr: Expr
@@ -90,7 +90,7 @@ class UnaryExpr(Expr):
         return visitor.visit_unary_expr(self)
 
 
-@dataclass
+@dataclass(frozen=True)
 class VariableExpr(Expr):
     name: Token
 
@@ -98,7 +98,7 @@ class VariableExpr(Expr):
         return visitor.visit_variable_expr(self)
 
 
-@dataclass
+@dataclass(frozen=True)
 class AssignExpr(Expr):
     name: Token
     value_expr: Expr
@@ -107,7 +107,7 @@ class AssignExpr(Expr):
         return visitor.visit_assign_expr(self)
 
 
-@dataclass
+@dataclass(frozen=True)
 class LogicalExpr(Expr):
     left: Expr
     operator: Token
@@ -117,7 +117,7 @@ class LogicalExpr(Expr):
         return visitor.visit_logical_expr(self)
 
 
-@dataclass
+@dataclass(frozen=True)
 class CallExpr(Expr):
     callee: Expr
     paren: Token

@@ -44,7 +44,7 @@ class Stmt(ABC):
     def accept(self, visitor: StmtVisitor[R]) -> R: ...
 
 
-@dataclass
+@dataclass(frozen=True)
 class ExpressionStmt(Stmt):
     expr: Expr
 
@@ -52,7 +52,7 @@ class ExpressionStmt(Stmt):
         return visitor.visit_expression_stmt(self)
 
 
-@dataclass
+@dataclass(frozen=True)
 class PrintStmt(Stmt):
     expr: Expr
 
@@ -60,7 +60,7 @@ class PrintStmt(Stmt):
         return visitor.visit_print_stmt(self)
 
 
-@dataclass
+@dataclass(frozen=True)
 class VarStmt(Stmt):
     name: Token
     initializer: Expr | None
@@ -69,7 +69,7 @@ class VarStmt(Stmt):
         return visitor.visit_var_stmt(self)
 
 
-@dataclass
+@dataclass(frozen=True)
 class BlockStmt(Stmt):
     statements: list[Stmt]
 
@@ -77,7 +77,7 @@ class BlockStmt(Stmt):
         return visitor.visit_block_stmt(self)
 
 
-@dataclass
+@dataclass(frozen=True)
 class IfStmt(Stmt):
     condition: Expr
     then_stmt: Stmt
@@ -87,7 +87,7 @@ class IfStmt(Stmt):
         return visitor.visit_if_stmt(self)
 
 
-@dataclass
+@dataclass(frozen=True)
 class WhileStmt(Stmt):
     condition: Expr
     body: Stmt
@@ -96,7 +96,7 @@ class WhileStmt(Stmt):
         return visitor.visit_while_stmt(self)
 
 
-@dataclass
+@dataclass(frozen=True)
 class FlowStmt(Stmt):
     token: Token
 
@@ -104,7 +104,7 @@ class FlowStmt(Stmt):
         return visitor.visit_flow_stmt(self)
 
 
-@dataclass
+@dataclass(frozen=True)
 class FunctionStmt(Stmt):
     name: Token
     params: list[Token]
@@ -114,7 +114,7 @@ class FunctionStmt(Stmt):
         return visitor.visit_function_stmt(self)
 
 
-@dataclass
+@dataclass(frozen=True)
 class ReturnStmt(Stmt):
     keyword: Token
     value: Expr | None
