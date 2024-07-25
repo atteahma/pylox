@@ -33,10 +33,10 @@ class Parser:
     _tokens: list[Token]
     _current: int
 
-    def __init__(self, _logger: Logger, _tokens: Sequence[Token]) -> None:
-        self._logger = _logger
+    def __init__(self, logger: Logger, tokens: Sequence[Token]) -> None:
+        self._logger = logger
 
-        self._tokens = list(_tokens)
+        self._tokens = list(tokens)
         self._current = 0
 
     def parse(self) -> list[Stmt]:

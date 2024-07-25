@@ -34,10 +34,10 @@ class Scanner:
     _current: int
     _line: int
 
-    def __init__(self, _logger: Logger, _source: str) -> None:
-        self._logger = _logger
+    def __init__(self, logger: Logger, source: str) -> None:
+        self._logger = logger
 
-        self._source = _source
+        self._source = source
         self._tokens = []
         self._start = 0
         self._current = 0

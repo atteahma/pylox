@@ -39,9 +39,9 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
     _environment: Environment
     _op_mode: OpMode
 
-    def __init__(self, _logger: Logger, _op_mode: OpMode):
-        self._logger = _logger
-        self._op_mode = _op_mode
+    def __init__(self, logger: Logger, op_mode: OpMode):
+        self._logger = logger
+        self._op_mode = op_mode
 
         self._globals = Environment()
         self._environment = self._globals
