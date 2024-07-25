@@ -87,3 +87,29 @@ def test_closure():
 
     assert output.strip() == _lines(1, 2, 3)
     assert error == ""
+
+
+def test_environments():
+    code = _code(
+        """
+        var a = "global";
+        {
+            fun showA() {
+                print a;
+            }
+
+            showA();
+            var a = "block";
+            showA();
+        }
+        """
+    )
+
+    with _redirect() as (stdout, stderr):
+        assert main.run_text(Command.INTERPRET, code) == 0
+
+        output = stdout.getvalue()
+        error = stderr.getvalue()
+
+    assert output.strip() == _lines("global", "global")
+    assert error == ""
