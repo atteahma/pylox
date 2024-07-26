@@ -2,7 +2,7 @@
 
 This is a pure Python from scratch implementation of a tree-walking interpreter for the Lox language, following the book at https://craftinginterpreters.com. It implements all of the core features, some challenges, and some completely extra features.
 
-To see some things the interpreter supports, see `test.lox`.
+To see some things the interpreter supports, see [test.lox](https://github.com/atteahma/pylox/blob/a08f9daa66831e7c5e4ce35746829671fdd4b18c/test.lox).
 
 ## Features
 
