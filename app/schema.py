@@ -109,6 +109,7 @@ class FunctionType(StrEnum):
 
 class ClassType(StrEnum):
     CLASS = auto()
+    SUBCLASS = auto()
 
 
 class AstNode(ABC):

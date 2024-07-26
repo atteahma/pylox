@@ -176,6 +176,7 @@ class Resolver(Expr.Visitor[None], Stmt.Visitor[None]):
             self._error(stmt.superclass.name, "A class can't inherit from itself.")
 
         if stmt.superclass is not None:
+            self._current_class = ClassType.SUBCLASS
             self._resolve(stmt.superclass)
 
         if stmt.superclass is not None:
@@ -214,4 +215,11 @@ class Resolver(Expr.Visitor[None], Stmt.Visitor[None]):
         self._resolve_local(expr, expr.keyword)
 
     def visit_super_expr(self, expr: Expr.Super) -> None:
+        if self._current_class is None:
+            self._error(expr.keyword, "Can't use 'super' outside of a class.")
+        elif self._current_class != ClassType.SUBCLASS:
+            self._error(
+                expr.keyword, "Can't use 'super' in a class with no superclass."
+            )
+
         self._resolve_local(expr, expr.keyword)
