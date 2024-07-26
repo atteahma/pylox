@@ -14,6 +14,7 @@ from app.expression import (
     LogicalExpr,
     SetExpr,
     TernaryExpr,
+    ThisExpr,
     UnaryExpr,
     ExprVisitor,
     VariableExpr,
@@ -97,7 +98,9 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
     def resolve(self, expr: Expr, depth: int) -> None:
         self._locals[expr] = depth
 
-    def _look_up_variable(self, name: Token, expr: VariableExpr) -> LoxObject:
+    def _look_up_variable(
+        self, name: Token, expr: VariableExpr | ThisExpr
+    ) -> LoxObject:
         distance = self._locals.get(expr)
 
         if distance is None:
@@ -224,6 +227,9 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
         object_.set(expr.name, value)
 
         return value
+
+    def visit_this_expr(self, expr: ThisExpr) -> LoxObject:
+        return self._look_up_variable(expr.keyword, expr)
 
     def visit_expression_stmt(self, stmt: ExpressionStmt) -> None:
         self._evaluate(stmt.expr)

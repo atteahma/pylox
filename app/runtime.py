@@ -43,7 +43,7 @@ class LoxInstance:
 
         method = self.class_.find_method(name.lexeme)
         if method is not None:
-            return method
+            return method.bind(self)
 
         raise LoxRuntimeError(name, f"Undefined property '{name.lexeme}'.")
 
@@ -61,6 +61,11 @@ class LoxFunction(LoxCallable):
     def __init__(self, declaration: FunctionStmt, closure: Environment) -> None:
         self._declaration = declaration
         self._closure = closure
+
+    def bind(self, instance: LoxInstance) -> LoxFunction:
+        environment = Environment(self._closure)
+        environment.define("this", instance)
+        return LoxFunction(self._declaration, environment)
 
     def call(
         self, interpreter: Interpreter, arguments: Sequence[LoxObject]

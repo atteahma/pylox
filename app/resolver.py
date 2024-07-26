@@ -188,12 +188,17 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
         self._declare(stmt.name)
         self._define(stmt.name)
 
+        self._begin_scope()
+        self._scopes[-1]["this"] = True
+
         for method in stmt.methods:
             declaration = FunctionType.METHOD
             if method.name.lexeme == "init":
                 declaration = FunctionType.INITIALIZER
 
             self._resolve_function(method, declaration)
+
+        self._end_scope()
 
     def visit_get_expr(self, expr: GetExpr) -> None:
         self._resolve(expr.object)
