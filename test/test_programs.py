@@ -365,3 +365,22 @@ def test_super_on_subclass() -> None:
     assert exit_code == 0, error
     assert output.strip() == "A method"
     assert error == ""
+
+
+def test_break() -> None:
+    code = _code(
+        """
+        for (var i = 0; i < 10; i = i + 1) {
+            print i;
+
+            if (i > 3) {
+                break;
+            }
+        }
+        """
+    )
+    output, error, exit_code = _run(code)
+
+    assert exit_code == 0, error
+    assert output.strip() == _lines(0, 1, 2, 3, 4)
+    assert error == ""
