@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from app.constants import CONSTRUCTOR_METHOD_NAME, THIS_KEYWORD
+from app.constants import CONSTRUCTOR_METHOD_NAME, SUPER_KEYWORD, THIS_KEYWORD
 from app.errors import LoxResolverError
 from app.expression import (
     AssignExpr,
@@ -12,6 +12,7 @@ from app.expression import (
     LiteralExpr,
     LogicalExpr,
     SetExpr,
+    SuperExpr,
     TernaryExpr,
     ThisExpr,
     UnaryExpr,
@@ -197,6 +198,19 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
         self._declare(stmt.name)
         self._define(stmt.name)
 
+        if (
+            stmt.superclass is not None
+            and stmt.name.lexeme == stmt.superclass.name.lexeme
+        ):
+            self._error(stmt.superclass.name, "A class can't inherit from itself.")
+
+        if stmt.superclass is not None:
+            self._resolve(stmt.superclass)
+
+        if stmt.superclass is not None:
+            self._begin_scope()
+            self._scopes[-1][SUPER_KEYWORD] = True
+
         self._begin_scope()
         self._scopes[-1][THIS_KEYWORD] = True
 
@@ -208,6 +222,9 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
             self._resolve_function(method, declaration)
 
         self._end_scope()
+
+        if stmt.superclass is not None:
+            self._end_scope()
 
         self._current_class = enclosing_class
 
@@ -223,4 +240,7 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
             self._error(expr.keyword, "Can't use 'this' outside of a class.")
             return
 
+        self._resolve_local(expr, expr.keyword)
+
+    def visit_super_expr(self, expr: SuperExpr) -> None:
         self._resolve_local(expr, expr.keyword)

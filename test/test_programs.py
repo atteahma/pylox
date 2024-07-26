@@ -34,7 +34,7 @@ def _fib(n: int) -> int:
     return _fib(n - 2) + _fib(n - 1)
 
 
-def test_fib():
+def test_fib() -> None:
     code = _code(
         """
         fun fib(n) {
@@ -54,12 +54,12 @@ def test_fib():
         output = stdout.getvalue()
         error = stderr.getvalue()
 
-    assert exit_code == 0
+    assert exit_code == 0, error
     assert output.strip() == _lines(_fib(i) for i in range(20))
     assert error == ""
 
 
-def test_closure():
+def test_closure() -> None:
     code = _code(
         """
         fun makeCounter() {
@@ -84,12 +84,12 @@ def test_closure():
         output = stdout.getvalue()
         error = stderr.getvalue()
 
-    assert exit_code == 0
+    assert exit_code == 0, error
     assert output.strip() == _lines(1, 2, 3)
     assert error == ""
 
 
-def test_shadowing():
+def test_shadowing() -> None:
     code = _code(
         """
         var a = "global";
@@ -111,12 +111,12 @@ def test_shadowing():
         output = stdout.getvalue()
         error = stderr.getvalue()
 
-    assert exit_code == 0
+    assert exit_code == 0, error
     assert output.strip() == _lines("global", "global")
     assert error == ""
 
 
-def test_hello_word():
+def test_hello_word() -> None:
     code = _code(
         """
         var hello = "hello";
@@ -131,12 +131,12 @@ def test_hello_word():
         output = stdout.getvalue()
         error = stderr.getvalue()
 
-    assert exit_code == 0
+    assert exit_code == 0, error
     assert output.strip() == _lines("hello", "world")
     assert error == ""
 
 
-def test_semicolon_error():
+def test_semicolon_error() -> None:
     code = _code(
         """
         var hello = "hello";
@@ -151,12 +151,12 @@ def test_semicolon_error():
         output = stdout.getvalue()
         error = stderr.getvalue()
 
-    assert exit_code == 65
+    assert exit_code == 65, output
     assert output == ""
     assert error.strip() == "[line 3] Error at 'print': Expect ';' after value."
 
 
-def test_duplicate_declaration():
+def test_duplicate_declaration() -> None:
     code = _code(
         """
         fun bad() {
@@ -172,7 +172,7 @@ def test_duplicate_declaration():
         output = stdout.getvalue()
         error = stderr.getvalue()
 
-    assert exit_code == 65
+    assert exit_code == 65, output
     assert output == ""
     assert (
         error.strip()
@@ -180,7 +180,7 @@ def test_duplicate_declaration():
     )
 
 
-def test_global_return():
+def test_global_return() -> None:
     code = _code(
         """
         return 1;
@@ -193,14 +193,14 @@ def test_global_return():
         output = stdout.getvalue()
         error = stderr.getvalue()
 
-    assert exit_code == 65
+    assert exit_code == 65, output
     assert output == ""
     assert (
         error.strip() == "[line 1] Error at 'return': Can't return from top-level code."
     )
 
 
-def test_simple_class():
+def test_simple_class() -> None:
     code = _code(
         """
         class Bacon {
@@ -219,12 +219,12 @@ def test_simple_class():
         output = stdout.getvalue()
         error = stderr.getvalue()
 
-    assert exit_code == 0
+    assert exit_code == 0, error
     assert output.strip() == "Crunch crunch crunch!"
     assert error == ""
 
 
-def test_class_this():
+def test_class_this() -> None:
     code = _code(
         """
         class Cake {
@@ -246,12 +246,12 @@ def test_class_this():
         output = stdout.getvalue()
         error = stderr.getvalue()
 
-    assert exit_code == 0
+    assert exit_code == 0, error
     assert output.strip() == "The German chocolate cake is delicious!"
     assert error == ""
 
 
-def test_class_binding():
+def test_class_binding() -> None:
     code = _code(
         """
         class Person {
@@ -277,12 +277,12 @@ def test_class_binding():
         output = stdout.getvalue()
         error = stderr.getvalue()
 
-    assert exit_code == 0
+    assert exit_code == 0, error
     assert output.strip() == "Jane"
     assert error == ""
 
 
-def test_this_outside_class():
+def test_this_outside_class() -> None:
     code = _code(
         """
         fun notAMethod() {
@@ -297,7 +297,7 @@ def test_this_outside_class():
         output = stdout.getvalue()
         error = stderr.getvalue()
 
-    assert exit_code == 65
+    assert exit_code == 65, output
     assert output == ""
     assert (
         error.strip()
@@ -305,7 +305,7 @@ def test_this_outside_class():
     )
 
 
-def test_class_init():
+def test_class_init() -> None:
     code = _code(
         """
         class Cake {
@@ -331,4 +331,99 @@ def test_class_init():
 
     assert exit_code == 0, error
     assert output.strip() == "The German chocolate cake is delicious!"
+    assert error == ""
+
+
+def test_class_inheritance() -> None:
+    code = _code(
+        """
+        class Doughnut {
+            cook() {
+                print "Fry until golden brown.";
+            }
+        }
+
+        class BostonCream < Doughnut {}
+
+        BostonCream().cook();
+        """
+    )
+
+    with _redirect() as (stdout, stderr):
+        exit_code = main.run_text(Command.INTERPRET, code)
+
+        output = stdout.getvalue()
+        error = stderr.getvalue()
+
+    assert exit_code == 0, error
+    assert output.strip() == "Fry until golden brown."
+    assert error == ""
+
+
+def test_class_super() -> None:
+    code = _code(
+        """
+        class Doughnut {
+            cook() {
+                print "Fry until golden brown.";
+            }
+        }
+
+        class BostonCream < Doughnut {
+            cook() {
+                super.cook();
+                print "Pipe full of custard and coat with chocolate.";
+            }
+        }
+
+        BostonCream().cook();
+        """
+    )
+
+    with _redirect() as (stdout, stderr):
+        exit_code = main.run_text(Command.INTERPRET, code)
+
+        output = stdout.getvalue()
+        error = stderr.getvalue()
+
+    assert exit_code == 0, error
+    assert output.strip() == _lines(
+        "Fry until golden brown.", "Pipe full of custard and coat with chocolate."
+    )
+    assert error == ""
+
+
+def test_super_on_subclass() -> None:
+    code = _code(
+        """
+        class A {
+            method() {
+                print "A method";
+            }
+        }
+
+        class B < A {
+            method() {
+                print "B method";
+            }
+
+            test() {
+                super.method();
+            }
+        }
+
+        class C < B {}
+
+        C().test();
+        """
+    )
+
+    with _redirect() as (stdout, stderr):
+        exit_code = main.run_text(Command.INTERPRET, code)
+
+        output = stdout.getvalue()
+        error = stderr.getvalue()
+
+    assert exit_code == 0, error
+    assert output.strip() == "A method"
     assert error == ""

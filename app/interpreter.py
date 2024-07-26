@@ -1,7 +1,8 @@
 from collections.abc import Sequence
 import sys
+from typing import cast
 from app import builtins, util
-from app.constants import CONSTRUCTOR_METHOD_NAME
+from app.constants import CONSTRUCTOR_METHOD_NAME, SUPER_KEYWORD, THIS_KEYWORD
 from app.environment import Environment
 from app.errors import LoxLoopException, LoxReturnException, LoxRuntimeError
 from app.expression import (
@@ -14,6 +15,7 @@ from app.expression import (
     LiteralExpr,
     LogicalExpr,
     SetExpr,
+    SuperExpr,
     TernaryExpr,
     ThisExpr,
     UnaryExpr,
@@ -232,6 +234,22 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
     def visit_this_expr(self, expr: ThisExpr) -> LoxObject:
         return self._look_up_variable(expr.keyword, expr)
 
+    def visit_super_expr(self, expr: SuperExpr) -> LoxObject:
+        distance = self._locals[expr]
+        superclass = self._environment.get_at(distance, SUPER_KEYWORD)
+        object_ = self._environment.get_at(distance - 1, THIS_KEYWORD)
+
+        assert isinstance(superclass, LoxClass)
+        assert isinstance(object_, LoxInstance)
+
+        method = superclass.find_method(expr.method.lexeme)
+        if method is None:
+            raise LoxRuntimeError(
+                expr.method, f"Undefined property '{expr.method.lexeme}'."
+            )
+
+        return method.bind(object_)
+
     def visit_expression_stmt(self, stmt: ExpressionStmt) -> None:
         self._evaluate(stmt.expr)
 
@@ -285,7 +303,23 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
         raise LoxReturnException(stmt.keyword, value)
 
     def visit_class_stmt(self, stmt: ClassStmt) -> None:
+        superclass = None
+        if stmt.superclass is not None:
+            superclass = self._evaluate(stmt.superclass)
+
+            if not isinstance(superclass, LoxClass):
+                raise LoxRuntimeError(
+                    stmt.superclass.name, "Superclass must be a class."
+                )
+
+        superclass = cast(LoxClass | None, superclass)
+
         self._environment.define(stmt.name.lexeme, None)
+
+        if stmt.superclass is not None:
+            enclosing_environment = self._environment
+            self._environment = Environment(enclosing=enclosing_environment)
+            self._environment.define(SUPER_KEYWORD, superclass)
 
         methods = {}
         for method in stmt.methods:
@@ -293,5 +327,9 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
             func = LoxFunction(method, self._environment, is_initializer)
             methods[method.name.lexeme] = func
 
-        class_ = LoxClass(stmt.name.lexeme, methods)
+        class_ = LoxClass(stmt.name.lexeme, superclass, methods)
+
+        if superclass is not None:
+            self._environment = enclosing_environment
+
         self._environment.assign(stmt.name, class_)

@@ -50,6 +50,9 @@ class ExprVisitor(Generic[R], ABC):
     @abstractmethod
     def visit_this_expr(self, expr: ThisExpr) -> R: ...
 
+    @abstractmethod
+    def visit_super_expr(self, expr: SuperExpr) -> R: ...
+
 
 class Expr(AstNode):
     @abstractmethod
@@ -163,3 +166,12 @@ class ThisExpr(Expr):
 
     def accept(self, visitor: ExprVisitor[R]) -> R:
         return visitor.visit_this_expr(self)
+
+
+@dataclass(frozen=True, eq=False)
+class SuperExpr(Expr):
+    keyword: Token
+    method: Token
+
+    def accept(self, visitor: ExprVisitor[R]) -> R:
+        return visitor.visit_super_expr(self)

@@ -104,10 +104,14 @@ class LoxFunction(LoxCallable):
 
 class LoxClass(LoxCallable):
     name: str
+    superclass: LoxClass | None
     _methods: dict[str, LoxFunction]
 
-    def __init__(self, name: str, methods: dict[str, LoxFunction]) -> None:
+    def __init__(
+        self, name: str, superclass: LoxClass | None, methods: dict[str, LoxFunction]
+    ) -> None:
         self.name = name
+        self.superclass = superclass
         self._methods = methods
 
     def call(
@@ -134,5 +138,8 @@ class LoxClass(LoxCallable):
     def find_method(self, name: str) -> LoxFunction | None:
         if name in self._methods:
             return self._methods[name]
+
+        if self.superclass is not None:
+            return self.superclass.find_method(name)
 
         return None

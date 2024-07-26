@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Generic, TypeVar
 
-from app.expression import Expr
+from app.expression import Expr, VariableExpr
 from app.schema import AstNode, Token
 
 # All AstNode dataclasses are @dataclass(frozen=True, eq=False)
@@ -132,6 +132,7 @@ class ReturnStmt(Stmt):
 @dataclass(frozen=True, eq=False)
 class ClassStmt(Stmt):
     name: Token
+    superclass: VariableExpr | None
     methods: list[FunctionStmt]
 
     def accept(self, visitor: StmtVisitor[R]) -> R:

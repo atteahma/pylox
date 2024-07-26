@@ -11,6 +11,7 @@ from app.expression import (
     LiteralExpr,
     LogicalExpr,
     SetExpr,
+    SuperExpr,
     ThisExpr,
     UnaryExpr,
     VariableExpr,
@@ -141,6 +142,12 @@ class Parser:
 
     def _class_declaration(self) -> ClassStmt:
         name = self._consume(TokenType.IDENTIFIER, "Expect class name.")
+
+        superclass = None
+        if self._match(TokenType.LESS):
+            self._consume(TokenType.IDENTIFIER, "Expect superclass name.")
+            superclass = VariableExpr(self._peek(offset=-1))
+
         self._consume(TokenType.LEFT_BRACE, "Expect '{' before class body.")
 
         methods = []
@@ -150,7 +157,7 @@ class Parser:
 
         self._consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.")
 
-        return ClassStmt(name, methods)
+        return ClassStmt(name, superclass, methods)
 
     def _function(self, type_: FunctionType) -> FunctionStmt:
         name = self._consume(TokenType.IDENTIFIER, f"Expect {type_} name.")
@@ -441,7 +448,9 @@ class Parser:
 
         return CallExpr(callee, paren, arguments)
 
-    def _primary(self) -> LiteralExpr | VariableExpr | GroupingExpr | ThisExpr:
+    def _primary(
+        self,
+    ) -> LiteralExpr | VariableExpr | GroupingExpr | ThisExpr | SuperExpr:
         if self._match(TokenType.TRUE):
             return LiteralExpr(True)
         if self._match(TokenType.FALSE):
@@ -458,6 +467,14 @@ class Parser:
 
         if self._match(TokenType.IDENTIFIER):
             return VariableExpr(self._peek(offset=-1))
+
+        if self._match(TokenType.SUPER):
+            keyword = self._peek(offset=-1)
+            self._consume(TokenType.DOT, "Expect '.' after 'super'.")
+            method = self._consume(
+                TokenType.IDENTIFIER, "Expect superclass method name."
+            )
+            return SuperExpr(keyword, method)
 
         if self._match(TokenType.LEFT_PAREN):
             expr = self._expression()
