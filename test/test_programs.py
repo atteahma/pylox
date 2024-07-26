@@ -305,3 +305,32 @@ def test_this_outside_class():
         error.strip()
         == "[line 2] Error at 'this': Can't use 'this' outside of a class."
     )
+
+
+def test_class_init():
+    code = _code(
+        """
+        class Cake {
+            init(adjective) {
+                this.adjective = adjective;
+                this.flavor = "German chocolate";
+            }
+            taste() {
+                print "The " + this.flavor + " cake is " + this.adjective + "!";
+            }
+        }
+
+        var cake = Cake("delicious");
+        cake.taste();
+        """
+    )
+
+    with _redirect() as (stdout, stderr):
+        exit_code = main.run_text(Command.INTERPRET, code)
+
+        output = stdout.getvalue()
+        error = stderr.getvalue()
+
+    assert exit_code == 0, error
+    assert output.strip() == "The German chocolate cake is delicious!"
+    assert error == ""

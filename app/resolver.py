@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from app.constants import INIT_METHOD_NAME, THIS_KEYWORD
+from app.constants import CONSTRUCTOR_METHOD_NAME, THIS_KEYWORD
 from app.errors import LoxResolverError
 from app.expression import (
     AssignExpr,
@@ -153,6 +153,9 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
             self._error(stmt.keyword, "Can't return from top-level code.")
 
         if stmt.value is not None:
+            if self._current_function == FunctionType.INITIALIZER:
+                self._error(stmt.keyword, "Can't return a value from an initializer.")
+
             self._resolve(stmt.value)
 
     def visit_while_stmt(self, stmt: WhileStmt) -> None:
@@ -199,7 +202,7 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
 
         for method in stmt.methods:
             declaration = FunctionType.METHOD
-            if method.name.lexeme == INIT_METHOD_NAME:
+            if method.name.lexeme == CONSTRUCTOR_METHOD_NAME:
                 declaration = FunctionType.INITIALIZER
 
             self._resolve_function(method, declaration)

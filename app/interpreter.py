@@ -1,6 +1,7 @@
 from collections.abc import Sequence
 import sys
 from app import builtins, util
+from app.constants import CONSTRUCTOR_METHOD_NAME
 from app.environment import Environment
 from app.errors import LoxLoopException, LoxReturnException, LoxRuntimeError
 from app.expression import (
@@ -273,7 +274,7 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
         raise LoxLoopException(stmt.token)
 
     def visit_function_stmt(self, stmt: FunctionStmt) -> None:
-        func = LoxFunction(stmt, self._environment)
+        func = LoxFunction(stmt, self._environment, False)
         self._environment.define(stmt.name.lexeme, func)
 
     def visit_return_stmt(self, stmt: ReturnStmt) -> None:
@@ -288,7 +289,8 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
 
         methods = {}
         for method in stmt.methods:
-            func = LoxFunction(method, self._environment)
+            is_initializer = method.name.lexeme == CONSTRUCTOR_METHOD_NAME
+            func = LoxFunction(method, self._environment, is_initializer)
             methods[method.name.lexeme] = func
 
         class_ = LoxClass(stmt.name.lexeme, methods)

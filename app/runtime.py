@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
-from app.constants import INIT_METHOD_NAME, THIS_KEYWORD
+from app.constants import CONSTRUCTOR_METHOD_NAME, THIS_KEYWORD
 from app.environment import Environment
 from app.errors import LoxReturnException, LoxRuntimeError
 from app.schema import Token
@@ -58,15 +58,19 @@ LoxObject = LoxInstance | LoxCallable | float | str | bool | None
 class LoxFunction(LoxCallable):
     _declaration: FunctionStmt
     _closure: Environment
+    _is_initializer: bool
 
-    def __init__(self, declaration: FunctionStmt, closure: Environment) -> None:
+    def __init__(
+        self, declaration: FunctionStmt, closure: Environment, is_initializer: bool
+    ) -> None:
         self._declaration = declaration
         self._closure = closure
+        self._is_initializer = is_initializer
 
     def bind(self, instance: LoxInstance) -> LoxFunction:
         environment = Environment(self._closure)
         environment.define(THIS_KEYWORD, instance)
-        return LoxFunction(self._declaration, environment)
+        return LoxFunction(self._declaration, environment, self._is_initializer)
 
     def call(
         self, interpreter: Interpreter, arguments: Sequence[LoxObject]
@@ -81,7 +85,13 @@ class LoxFunction(LoxCallable):
         try:
             interpreter.execute_block(body, environment)
         except LoxReturnException as ret:
+            if self._is_initializer:
+                return self._closure.get_at(0, THIS_KEYWORD)
+
             return ret.value
+
+        if self._is_initializer:
+            return self._closure.get_at(0, THIS_KEYWORD)
 
         return None
 
@@ -105,13 +115,17 @@ class LoxClass(LoxCallable):
     ) -> LoxObject:
         instance = LoxInstance(self)
 
-        initializer = self.find_method(INIT_METHOD_NAME)
+        initializer = self.find_method(CONSTRUCTOR_METHOD_NAME)
         if initializer is not None:
             initializer.bind(instance).call(interpreter, arguments)
 
         return instance
 
     def arity(self) -> int:
+        initializer = self.find_method(CONSTRUCTOR_METHOD_NAME)
+        if initializer is not None:
+            return initializer.arity()
+
         return 0
 
     def __str__(self) -> str:
