@@ -42,8 +42,6 @@ def test_fib():
             return fib(n - 2) + fib(n - 1);
         }
 
-        var start_time = clock();
-
         for (var i = 0; i < 20; i = i + 1) {
             print fib(i);
         }
