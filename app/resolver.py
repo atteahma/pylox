@@ -18,7 +18,7 @@ from app.expression import (
 )
 from app.interpreter import Interpreter
 from app.logger import Logger
-from app.schema import FunctionType, Token, TokenType
+from app.schema import ClassType, FunctionType, Token, TokenType
 from app.statement import (
     BlockStmt,
     ClassStmt,
@@ -38,14 +38,16 @@ from app.statement import (
 class Resolver(ExprVisitor[None], StmtVisitor[None]):
     _logger: Logger
     _interpreter: Interpreter
-    _scopes: list[dict[str, bool]]  # python lists have O(1) stack operations
+    _scopes: list[dict[str, bool]]
     _current_function: FunctionType | None
+    _current_class: ClassType | None
 
     def __init__(self, logger: Logger, interpreter: Interpreter):
         self._logger = logger
         self._interpreter = interpreter
         self._scopes = []
         self._current_function = None
+        self._current_class = None
 
     def resolve(self, statements: Sequence[Stmt]) -> None:
         for statement in statements:
@@ -185,6 +187,9 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
         raise NotImplementedError("Resolver.visit_ternary_expr not implemented")
 
     def visit_class_stmt(self, stmt: ClassStmt) -> None:
+        enclosing_class = self._current_class
+        self._current_class = ClassType.CLASS
+
         self._declare(stmt.name)
         self._define(stmt.name)
 
@@ -200,6 +205,8 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
 
         self._end_scope()
 
+        self._current_class = enclosing_class
+
     def visit_get_expr(self, expr: GetExpr) -> None:
         self._resolve(expr.object)
 
@@ -208,4 +215,8 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
         self._resolve(expr.object)
 
     def visit_this_expr(self, expr: ThisExpr) -> None:
+        if self._current_class is None:
+            self._error(expr.keyword, "Can't use 'this' outside of a class.")
+            return
+
         self._resolve_local(expr, expr.keyword)

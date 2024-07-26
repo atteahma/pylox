@@ -107,6 +107,10 @@ class FunctionType(StrEnum):
     INITIALIZER = auto()
 
 
+class ClassType(StrEnum):
+    CLASS = auto()
+
+
 class AstNode(ABC):
     def __hash__(self) -> int:
         return id(self)

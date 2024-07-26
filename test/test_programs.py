@@ -51,11 +51,12 @@ def test_fib():
     )
 
     with _redirect() as (stdout, stderr):
-        assert main.run_text(Command.INTERPRET, code) == 0
+        exit_code = main.run_text(Command.INTERPRET, code)
 
         output = stdout.getvalue()
         error = stderr.getvalue()
 
+    assert exit_code == 0
     assert output.strip() == _lines(_fib(i) for i in range(20))
     assert error == ""
 
@@ -80,11 +81,12 @@ def test_closure():
     )
 
     with _redirect() as (stdout, stderr):
-        assert main.run_text(Command.INTERPRET, code) == 0
+        exit_code = main.run_text(Command.INTERPRET, code)
 
         output = stdout.getvalue()
         error = stderr.getvalue()
 
+    assert exit_code == 0
     assert output.strip() == _lines(1, 2, 3)
     assert error == ""
 
@@ -106,11 +108,12 @@ def test_shadowing():
     )
 
     with _redirect() as (stdout, stderr):
-        assert main.run_text(Command.INTERPRET, code) == 0
+        exit_code = main.run_text(Command.INTERPRET, code)
 
         output = stdout.getvalue()
         error = stderr.getvalue()
 
+    assert exit_code == 0
     assert output.strip() == _lines("global", "global")
     assert error == ""
 
@@ -125,11 +128,12 @@ def test_hello_word():
     )
 
     with _redirect() as (stdout, stderr):
-        assert main.run_text(Command.INTERPRET, code) == 0
+        exit_code = main.run_text(Command.INTERPRET, code)
 
         output = stdout.getvalue()
         error = stderr.getvalue()
 
+    assert exit_code == 0
     assert output.strip() == _lines("hello", "world")
     assert error == ""
 
@@ -144,11 +148,12 @@ def test_semicolon_error():
     )
 
     with _redirect() as (stdout, stderr):
-        assert main.run_text(Command.INTERPRET, code) == 65
+        exit_code = main.run_text(Command.INTERPRET, code)
 
         output = stdout.getvalue()
         error = stderr.getvalue()
 
+    assert exit_code == 65
     assert output == ""
     assert error.strip() == "[line 3] Error at 'print': Expect ';' after value."
 
@@ -164,11 +169,12 @@ def test_duplicate_declaration():
     )
 
     with _redirect() as (stdout, stderr):
-        assert main.run_text(Command.INTERPRET, code) == 65
+        exit_code = main.run_text(Command.INTERPRET, code)
 
         output = stdout.getvalue()
         error = stderr.getvalue()
 
+    assert exit_code == 65
     assert output == ""
     assert (
         error.strip()
@@ -184,11 +190,12 @@ def test_global_return():
     )
 
     with _redirect() as (stdout, stderr):
-        assert main.run_text(Command.INTERPRET, code) == 65
+        exit_code = main.run_text(Command.INTERPRET, code)
 
         output = stdout.getvalue()
         error = stderr.getvalue()
 
+    assert exit_code == 65
     assert output == ""
     assert (
         error.strip() == "[line 1] Error at 'return': Can't return from top-level code."
@@ -209,11 +216,12 @@ def test_simple_class():
     )
 
     with _redirect() as (stdout, stderr):
-        assert main.run_text(Command.INTERPRET, code) == 0
+        exit_code = main.run_text(Command.INTERPRET, code)
 
         output = stdout.getvalue()
         error = stderr.getvalue()
 
+    assert exit_code == 0
     assert output.strip() == "Crunch crunch crunch!"
     assert error == ""
 
@@ -235,11 +243,12 @@ def test_class_this():
     )
 
     with _redirect() as (stdout, stderr):
-        assert main.run_text(Command.INTERPRET, code) == 0
+        exit_code = main.run_text(Command.INTERPRET, code)
 
         output = stdout.getvalue()
         error = stderr.getvalue()
 
+    assert exit_code == 0
     assert output.strip() == "The German chocolate cake is delicious!"
     assert error == ""
 
@@ -265,10 +274,34 @@ def test_class_binding():
     )
 
     with _redirect() as (stdout, stderr):
-        assert main.run_text(Command.INTERPRET, code) == 0
+        exit_code = main.run_text(Command.INTERPRET, code)
 
         output = stdout.getvalue()
         error = stderr.getvalue()
 
+    assert exit_code == 0
     assert output.strip() == "Jane"
     assert error == ""
+
+
+def test_this_outside_class():
+    code = _code(
+        """
+        fun notAMethod() {
+            print this;
+        }
+        """
+    )
+
+    with _redirect() as (stdout, stderr):
+        exit_code = main.run_text(Command.INTERPRET, code)
+
+        output = stdout.getvalue()
+        error = stderr.getvalue()
+
+    assert exit_code == 65
+    assert output == ""
+    assert (
+        error.strip()
+        == "[line 2] Error at 'this': Can't use 'this' outside of a class."
+    )
