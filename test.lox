@@ -1,14 +1,156 @@
-fun makeCounter() {
-  var i = 0;
-  fun count() {
-    i = i + 1;
-    print i;
+class Node {
+  init(value) {
+    this.value = value;
+    this.next = nil;
+    this.prev = nil;
   }
-
-  return count;
 }
 
-var counter = makeCounter();
-counter();
-counter();
-counter();
+class LinkedList {
+  init() {
+    this.head = Node(nil);
+    this.tail = Node(nil);
+
+    this.head.next = this.tail;
+    this.tail.prev = this.head;
+
+    this.size = 0;
+  }
+
+  _insert(node, newNode) {
+    var next = node.next;
+
+    // link to previous node
+    node.next = newNode;
+    newNode.prev = node;
+
+    // link to next node
+    newNode.next = next;
+    next.prev = newNode;
+
+    this.size = this.size + 1;
+  }
+
+  append(value) {
+    var node = Node(value);
+    this._insert(this.tail.prev, node);
+  }
+
+  prepend(value) {
+    var node = Node(value);
+    this._insert(this.head, node);
+  }
+
+  _remove(node) {
+    var prev = node.prev;
+    var next = node.next;
+
+    prev.next = next;
+    next.prev = prev;
+
+    this.size = this.size - 1;
+  }
+
+  pop() {
+    var node = this.tail.prev;
+    this._remove(node);
+    return node.value;
+  }
+
+  shift() {
+    var node = this.head.next;
+    this._remove(node);
+    return node.value;
+  }
+
+  _getNode(index) {
+    if (index < 0 or index >= this.size) {
+      return nil;
+    }
+
+    var node = this.head.next;
+    for (var i = 0; i < index; i = i + 1) {
+      node = node.next;
+    }
+    return node;
+  }
+
+  get(index) {
+    var node = this._getNode(index);
+    if (node == nil) return nil;
+    return node.value;
+  }
+
+  set(index, value) {
+    var node = this._getNode(index);
+    if (node == nil) return;
+    node.value = value;
+  }
+
+  contains(value) {
+    var node = this.head.next;
+
+    while (node != this.tail) {
+      if (node.value == value) {
+        return true;
+      }
+      node = node.next;
+    }
+
+    return false;
+  }
+
+  extend(other) {
+    var otherFirst = other.head.next;
+    var thisLast = this.tail.prev;
+
+    // link this to other
+    thisLast.next = otherFirst;
+    otherFirst.prev = thisLast;
+
+    // link up new tail
+    this.tail = other.tail;
+  }
+
+  clear() {
+    this.head.next = this.tail;
+    this.tail.prev = this.head;
+    this.size = 0;
+  }
+
+  toString() {
+    var node = this.head.next;
+    var result = "[";
+
+    while (node != this.tail) {
+      var strValue = stringify(node.value);
+      result = result + strValue;
+      node = node.next;
+
+      if (node != this.tail) {
+        result = result + ", ";
+      }
+    }
+
+    result = result + "]";
+    return result;
+  }
+}
+
+fun initList(size, doRandom) {
+  var list = LinkedList();
+
+  for (var i = 0; i < size; i = i + 1) {
+    var value = i;
+    if (doRandom) {
+      value = random();
+    }
+
+    list.append(value);
+  }
+
+  return list;
+}
+
+var list = initList(10, true);
+print list.toString();
