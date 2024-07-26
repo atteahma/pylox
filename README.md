@@ -26,8 +26,8 @@ Core Features:
 - Inheritance
 
 Challenges:
-- Ternary expressions
-- Break and continue statements
+- Ternary expressions (partial)
+- Break statements
 
 Extra Features:
 - Random builtin
