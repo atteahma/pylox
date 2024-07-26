@@ -151,3 +151,45 @@ def test_semicolon_error():
 
     assert output == ""
     assert error.strip() == "[line 3] Error at 'print': Expect ';' after value."
+
+
+def test_duplicate_declaration():
+    code = _code(
+        """
+        fun bad() {
+            var a = "first";
+            var a = "second";
+        }
+        """
+    )
+
+    with _redirect() as (stdout, stderr):
+        assert main.run_text(Command.INTERPRET, code) == 65
+
+        output = stdout.getvalue()
+        error = stderr.getvalue()
+
+    assert output == ""
+    assert (
+        error.strip()
+        == "[line 3] Error at 'a': Already a variable with this name in this scope."
+    )
+
+
+def test_global_return():
+    code = _code(
+        """
+        return 1;
+        """
+    )
+
+    with _redirect() as (stdout, stderr):
+        assert main.run_text(Command.INTERPRET, code) == 65
+
+        output = stdout.getvalue()
+        error = stderr.getvalue()
+
+    assert output == ""
+    assert (
+        error.strip() == "[line 1] Error at 'return': Can't return from top-level code."
+    )

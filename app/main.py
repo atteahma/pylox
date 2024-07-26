@@ -71,6 +71,9 @@ def _run(
     resolver = Resolver(logger, interpreter)
     resolver.resolve(statements)
 
+    if logger.had_error:
+        return
+
     interpreter.interpret(statements)
 
 

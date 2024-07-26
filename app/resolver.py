@@ -15,7 +15,7 @@ from app.expression import (
 )
 from app.interpreter import Interpreter
 from app.logger import Logger
-from app.schema import Token, TokenType
+from app.schema import FunctionType, Token, TokenType
 from app.statement import (
     BlockStmt,
     ExpressionStmt,
@@ -35,11 +35,13 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
     _logger: Logger
     _interpreter: Interpreter
     _scopes: list[dict[str, bool]]  # python lists have O(1) stack operations
+    _current_function: FunctionType | None
 
     def __init__(self, logger: Logger, interpreter: Interpreter):
         self._logger = logger
         self._interpreter = interpreter
         self._scopes = []
+        self._current_function = None
 
     def resolve(self, statements: Sequence[Stmt]) -> None:
         for statement in statements:
@@ -59,6 +61,10 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
             return
 
         scope = self._scopes[-1]
+
+        if name.lexeme in scope:
+            self._error(name, "Already a variable with this name in this scope.")
+
         scope[name.lexeme] = False
 
     def _define(self, name: Token) -> None:
@@ -80,7 +86,10 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
                 self._interpreter.resolve(expr, i_from_end)
                 return
 
-    def _resolve_function(self, function: FunctionStmt) -> None:
+    def _resolve_function(self, function: FunctionStmt, type_: FunctionType) -> None:
+        enclosing_function = self._current_function
+        self._current_function = type_
+
         self._begin_scope()
         for param in function.params:
             self._declare(param)
@@ -88,6 +97,8 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
 
         self.resolve(function.body)
         self._end_scope()
+
+        self._current_function = enclosing_function
 
     def visit_block_stmt(self, stmt: BlockStmt) -> None:
         self._begin_scope()
@@ -116,7 +127,7 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
         self._declare(stmt.name)
         self._define(stmt.name)
 
-        self._resolve_function(stmt)
+        self._resolve_function(stmt, FunctionType.FUNCTION)
 
     def visit_expression_stmt(self, stmt: ExpressionStmt) -> None:
         self._resolve(stmt.expr)
@@ -131,6 +142,9 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
         self._resolve(stmt.expr)
 
     def visit_return_stmt(self, stmt: ReturnStmt) -> None:
+        if self._current_function is None:
+            self._error(stmt.keyword, "Can't return from top-level code.")
+
         if stmt.value is not None:
             self._resolve(stmt.value)
 

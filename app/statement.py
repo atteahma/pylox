@@ -124,3 +124,15 @@ class ReturnStmt(Stmt):
 
     def accept(self, visitor: StmtVisitor[R]) -> R:
         return visitor.visit_return_stmt(self)
+
+
+"""
+declaration    → classDecl
+               | funDecl
+               | varDecl
+               | statement ;
+
+classDecl      → "class" IDENTIFIER "{" function* "}" ;
+function       → IDENTIFIER "(" parameters? ")" block ;
+parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
+"""
