@@ -1,186 +1,285 @@
 // SingleLinkNode is only to show that the interpreter supports inheritance
 class SingleLinkNode {
-  init(value) {
-    this.value = value;
-    this.next = nil;
-  }
+    init(value) {
+        this.value = value;
+        this.next = nil;
+    }
 }
 
 class Node < SingleLinkNode {
-  init(value) {
-    super.init(value);
-    this.prev = nil;
-  }
+    init(value) {
+        super.init(value);
+        this.prev = nil;
+    }
 }
 
 class LinkedList {
-  init() {
-    this.head = Node(nil);
-    this.tail = Node(nil);
+    init() {
+        this.head = Node(nil);
+        this.tail = Node(nil);
 
-    this.head.next = this.tail;
-    this.tail.prev = this.head;
+        this.head.next = this.tail;
+        this.tail.prev = this.head;
 
-    this.size = 0;
-  }
-
-  _insert(node, newNode) {
-    var next = node.next;
-
-    // link to previous node
-    node.next = newNode;
-    newNode.prev = node;
-
-    // link to next node
-    newNode.next = next;
-    next.prev = newNode;
-
-    this.size = this.size + 1;
-  }
-
-  append(value) {
-    var node = Node(value);
-    this._insert(this.tail.prev, node);
-  }
-
-  prepend(value) {
-    var node = Node(value);
-    this._insert(this.head, node);
-  }
-
-  _remove(node) {
-    var prev = node.prev;
-    var next = node.next;
-
-    prev.next = next;
-    next.prev = prev;
-
-    this.size = this.size - 1;
-  }
-
-  pop() {
-    var node = this.tail.prev;
-    this._remove(node);
-    return node.value;
-  }
-
-  shift() {
-    var node = this.head.next;
-    this._remove(node);
-    return node.value;
-  }
-
-  _getNode(index) {
-    if (index < 0 or index >= this.size) {
-      return nil;
+        this.size = 0;
     }
 
-    var node = this.head.next;
-    for (var i = 0; i < index; i = i + 1) {
-      node = node.next;
-    }
-    return node;
-  }
+    _insert(node, newNode) {
+        var next = node.next;
 
-  get(index) {
-    var node = this._getNode(index);
-    if (node == nil) return nil;
-    return node.value;
-  }
+        // link to previous node
+        node.next = newNode;
+        newNode.prev = node;
 
-  set(index, value) {
-    var node = this._getNode(index);
-    if (node == nil) return;
-    node.value = value;
-  }
+        // link to next node
+        newNode.next = next;
+        next.prev = newNode;
 
-  contains(value) {
-    var node = this.head.next;
-
-    while (node != this.tail) {
-      if (node.value == value) {
-        return true;
-      }
-      node = node.next;
+        this.size = this.size + 1;
     }
 
-    return false;
-  }
-
-  extend(other) {
-    var otherFirst = other.head.next;
-    var thisLast = this.tail.prev;
-
-    // link this to other
-    thisLast.next = otherFirst;
-    otherFirst.prev = thisLast;
-
-    // link up new tail
-    this.tail = other.tail;
-  }
-
-  clear() {
-    this.head.next = this.tail;
-    this.tail.prev = this.head;
-    this.size = 0;
-  }
-
-  toString() {
-    var node = this.head.next;
-    var result = "[";
-
-    while (node != this.tail) {
-      var strValue = stringify(node.value);
-      result = result + strValue;
-      node = node.next;
-
-      if (node != this.tail) {
-        result = result + ", ";
-      }
+    append(value) {
+        var node = Node(value);
+        this._insert(this.tail.prev, node);
     }
 
-    result = result + "]";
-    return result;
-  }
+    prepend(value) {
+        var node = Node(value);
+        this._insert(this.head, node);
+    }
+
+    _remove(node) {
+        var prev = node.prev;
+        var next = node.next;
+
+        prev.next = next;
+        next.prev = prev;
+
+        this.size = this.size - 1;
+    }
+
+    pop() {
+        var node = this.tail.prev;
+        this._remove(node);
+        return node.value;
+    }
+
+    shift() {
+        var node = this.head.next;
+        this._remove(node);
+        return node.value;
+    }
+
+    _getNode(index) {
+        if (index < 0 or index >= this.size) {
+            return nil;
+        }
+
+        var node = this.head.next;
+        for (var i = 0; i < index; i = i + 1) {
+            node = node.next;
+        }
+        return node;
+    }
+
+    get(index) {
+        var node = this._getNode(index);
+        if (node == nil) return nil;
+        return node.value;
+    }
+
+    set(index, value) {
+        var node = this._getNode(index);
+        if (node == nil) return;
+        node.value = value;
+    }
+
+    contains(value) {
+        var node = this.head.next;
+
+        while (node != this.tail) {
+            if (node.value == value) {
+                return true;
+            }
+            node = node.next;
+        }
+
+        return false;
+    }
+
+    extend(other) {
+        var otherFirst = other.head.next;
+        var thisLast = this.tail.prev;
+
+        // link this to other
+        thisLast.next = otherFirst;
+        otherFirst.prev = thisLast;
+
+        // link up new tail
+        this.tail = other.tail;
+    }
+
+    clear() {
+        this.head.next = this.tail;
+        this.tail.prev = this.head;
+        this.size = 0;
+    }
+
+    toString() {
+        var node = this.head.next;
+        var result = "[";
+
+        while (node != this.tail) {
+            var strValue = stringify(node.value);
+            result = result + strValue;
+            node = node.next;
+
+            if (node != this.tail) {
+                result = result + ", ";
+            }
+        }
+
+        result = result + "]";
+        return result;
+    }
 }
 
 fun initList(size, doRandom) {
-  var list = LinkedList();
+    var list = LinkedList();
 
-  for (var i = 0; i < size; i = i + 1) {
-    var value = i;
-    if (doRandom) {
-      value = randInt(1, size);
+    for (var i = 0; i < size; i = i + 1) {
+        var value = i;
+        if (doRandom) {
+            value = randInt(1, size);
+        }
+
+        list.append(value);
     }
 
-    list.append(value);
-  }
-
-  return list;
+    return list;
 }
 
 // closures!
 fun iterList(list) {
-  var node = list.head.next;
+    var node = list.head.next;
 
-  fun iter() {
-    if (node == list.tail) {
-      return nil;
+    fun iter() {
+        if (node == list.tail) {
+            return nil;
+        }
+
+        var value = node.value;
+        node = node.next;
+
+        return value;
     }
 
-    var value = node.value;
-    node = node.next;
-
-    return value;
-  }
-
-  return iter;
+    return iter;
 }
 
-var list = initList(10, true);
-print list.toString();
+// var list = initList(10, true);
+// print list.toString();
 
-var iter = iterList(list);
-print iter();
-print iter();
-print iter();
+// var iter = iterList(list);
+// print iter();
+// print iter();
+// print iter();
+
+class LeftRight {
+    init(left, right) {
+        this.left = left;
+        this.right = right;
+    }
+}
+
+fun splitList(list) {
+    var mid = list.size / 2;
+    var left = LinkedList();
+    var right = LinkedList();
+    var iter = iterList(list);
+
+    for (var i = 0; i < list.size; i = i + 1) {
+        var node = iter();
+        if (i < mid) {
+            left.append(node);
+        } else {
+            right.append(node);
+        }
+    }
+
+    return LeftRight(left, right);
+}
+
+fun merge(left, right) {
+    var result = LinkedList();
+    var leftIter = iterList(left);
+    var rightIter = iterList(right);
+
+    var leftValue = leftIter();
+    var rightValue = rightIter();
+
+    while (leftValue != nil and rightValue != nil) {
+        if (leftValue < rightValue) {
+            result.append(leftValue);
+            leftValue = leftIter();
+        } else {
+            result.append(rightValue);
+            rightValue = rightIter();
+        }
+    }
+
+    while (leftValue != nil) {
+        result.append(leftValue);
+        leftValue = leftIter();
+    }
+
+    while (rightValue != nil) {
+        result.append(rightValue);
+        rightValue = rightIter();
+    }
+
+    return result;
+}
+
+fun mergeSort(list) {
+    if (list.size <= 1) {
+        return list;
+    }
+
+    var split = splitList(list);
+    var left = split.left;
+    var right = split.right;
+
+    left = mergeSort(left);
+    right = mergeSort(right);
+
+    return merge(left, right);
+}
+
+fun doTest(size) {
+    var list = initList(size, true);
+    var start = clock();
+    var sorted = mergeSort(list);
+    var end = clock();
+
+    var elapsed = end - start;
+
+    var sizeStr = stringify(size);
+    var elapsedStr = stringify(elapsed);
+
+    print "Sorted list of size " + sizeStr + " in " + elapsedStr + " seconds";
+    return elapsed;
+}
+
+fun pow(base, exp) {
+    var result = 1;
+    for (var i = 0; i < exp; i = i + 1) {
+        result = result * base;
+    }
+    return result;
+}
+
+for (var p = 1; p <= 4; p = p + 1) {
+    var size = pow(10, p);
+    doTest(size);
+}
