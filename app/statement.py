@@ -41,6 +41,9 @@ class StmtVisitor(Generic[R], ABC):
     @abstractmethod
     def visit_return_stmt(self, stmt: ReturnStmt) -> R: ...
 
+    @abstractmethod
+    def visit_class_stmt(self, stmt: ClassStmt) -> R: ...
+
 
 class Stmt(AstNode):
     @abstractmethod
@@ -126,13 +129,10 @@ class ReturnStmt(Stmt):
         return visitor.visit_return_stmt(self)
 
 
-"""
-declaration    → classDecl
-               | funDecl
-               | varDecl
-               | statement ;
+@dataclass(frozen=True, eq=False)
+class ClassStmt(Stmt):
+    name: Token
+    methods: list[FunctionStmt]
 
-classDecl      → "class" IDENTIFIER "{" function* "}" ;
-function       → IDENTIFIER "(" parameters? ")" block ;
-parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
-"""
+    def accept(self, visitor: StmtVisitor[R]) -> R:
+        return visitor.visit_class_stmt(self)

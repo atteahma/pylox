@@ -193,3 +193,56 @@ def test_global_return():
     assert (
         error.strip() == "[line 1] Error at 'return': Can't return from top-level code."
     )
+
+
+def test_simple_class():
+    code = _code(
+        """
+        class Bacon {
+            eat() {
+                print "Crunch crunch crunch!";
+            }
+        }
+
+        Bacon().eat(); // Prints "Crunch crunch crunch!".
+        """
+    )
+
+    with _redirect() as (stdout, stderr):
+        assert main.run_text(Command.INTERPRET, code) == 0
+
+        output = stdout.getvalue()
+        error = stderr.getvalue()
+
+    assert output.strip() == "Crunch crunch crunch!"
+    assert error == ""
+
+
+def test_class_binding():
+    code = _code(
+        """
+        class Person {
+            sayName() {
+                print this.name;
+            }
+        }
+
+        var jane = Person();
+        jane.name = "Jane";
+
+        var bill = Person();
+        bill.name = "Bill";
+
+        bill.sayName = jane.sayName;
+        bill.sayName();
+        """
+    )
+
+    with _redirect() as (stdout, stderr):
+        assert main.run_text(Command.INTERPRET, code) == 0
+
+        output = stdout.getvalue()
+        error = stderr.getvalue()
+
+    assert output.strip() == "Jane"
+    assert error == ""

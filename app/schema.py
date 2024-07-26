@@ -103,6 +103,8 @@ class OpMode(StrEnum):
 
 class FunctionType(StrEnum):
     FUNCTION = auto()
+    METHOD = auto()
+    INITIALIZER = auto()
 
 
 class AstNode(ABC):

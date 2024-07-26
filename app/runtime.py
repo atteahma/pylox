@@ -5,7 +5,8 @@ from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 from app.environment import Environment
-from app.errors import LoxReturnException
+from app.errors import LoxReturnException, LoxRuntimeError
+from app.schema import Token
 
 if TYPE_CHECKING:
     from app.interpreter import Interpreter
@@ -25,7 +26,32 @@ class LoxCallable(ABC):
     def __str__(self) -> str: ...
 
 
-LoxObject = LoxCallable | float | str | bool | None
+class LoxInstance:
+    class_: LoxClass
+    fields_: dict[str, LoxObject]
+
+    def __init__(self, class_: LoxClass) -> None:
+        self.class_ = class_
+        self.fields_ = {}
+
+    def __str__(self) -> str:
+        return f"{self.class_.name} instance"
+
+    def get(self, name: Token) -> LoxObject:
+        if name.lexeme in self.fields_:
+            return self.fields_[name.lexeme]
+
+        method = self.class_.find_method(name.lexeme)
+        if method is not None:
+            return method
+
+        raise LoxRuntimeError(name, f"Undefined property '{name.lexeme}'.")
+
+    def set(self, name: Token, value: LoxObject) -> None:
+        self.fields_[name.lexeme] = value
+
+
+LoxObject = LoxInstance | LoxCallable | float | str | bool | None
 
 
 class LoxFunction(LoxCallable):
@@ -58,3 +84,30 @@ class LoxFunction(LoxCallable):
 
     def __str__(self) -> str:
         return f"<fn {self._declaration.name.lexeme}>"
+
+
+class LoxClass(LoxCallable):
+    name: str
+    _methods: dict[str, LoxFunction]
+
+    def __init__(self, name: str, methods: dict[str, LoxFunction]) -> None:
+        self.name = name
+        self._methods = methods
+
+    def call(
+        self, interpreter: Interpreter, arguments: Sequence[LoxObject]
+    ) -> LoxObject:
+        instance = LoxInstance(self)
+        return instance
+
+    def arity(self) -> int:
+        return 0
+
+    def __str__(self) -> str:
+        return self.name
+
+    def find_method(self, name: str) -> LoxFunction | None:
+        if name in self._methods:
+            return self._methods[name]
+
+        return None

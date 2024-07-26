@@ -1,5 +1,4 @@
 from collections.abc import Sequence
-from pprint import pp
 import sys
 from app import builtins, util
 from app.environment import Environment
@@ -9,9 +8,11 @@ from app.expression import (
     BinaryExpr,
     CallExpr,
     Expr,
+    GetExpr,
     GroupingExpr,
     LiteralExpr,
     LogicalExpr,
+    SetExpr,
     TernaryExpr,
     UnaryExpr,
     ExprVisitor,
@@ -19,9 +20,10 @@ from app.expression import (
 )
 from app.logger import Logger
 from app.schema import OpMode, Token, TokenType
-from app.runtime import LoxCallable, LoxFunction, LoxObject
+from app.runtime import LoxCallable, LoxClass, LoxFunction, LoxInstance, LoxObject
 from app.statement import (
     BlockStmt,
+    ClassStmt,
     ExpressionStmt,
     FlowStmt,
     FunctionStmt,
@@ -206,6 +208,23 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
 
         return func.call(self, arguments)
 
+    def visit_get_expr(self, expr: GetExpr) -> LoxObject:
+        object_ = self._evaluate(expr.object)
+        if not isinstance(object_, LoxInstance):
+            raise LoxRuntimeError(expr.name, "Only instances have properties.")
+
+        return object_.get(expr.name)
+
+    def visit_set_expr(self, expr: SetExpr) -> LoxObject:
+        object_ = self._evaluate(expr.object)
+        if not isinstance(object_, LoxInstance):
+            raise LoxRuntimeError(expr.name, "Only instances have fields.")
+
+        value = self._evaluate(expr.value)
+        object_.set(expr.name, value)
+
+        return value
+
     def visit_expression_stmt(self, stmt: ExpressionStmt) -> None:
         self._evaluate(stmt.expr)
 
@@ -257,3 +276,14 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
             value = self._evaluate(stmt.value)
 
         raise LoxReturnException(stmt.keyword, value)
+
+    def visit_class_stmt(self, stmt: ClassStmt) -> None:
+        self._environment.define(stmt.name.lexeme, None)
+
+        methods = {}
+        for method in stmt.methods:
+            func = LoxFunction(method, self._environment)
+            methods[method.name.lexeme] = func
+
+        class_ = LoxClass(stmt.name.lexeme, methods)
+        self._environment.assign(stmt.name, class_)

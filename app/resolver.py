@@ -6,9 +6,11 @@ from app.expression import (
     CallExpr,
     Expr,
     ExprVisitor,
+    GetExpr,
     GroupingExpr,
     LiteralExpr,
     LogicalExpr,
+    SetExpr,
     TernaryExpr,
     UnaryExpr,
     VariableExpr,
@@ -18,6 +20,7 @@ from app.logger import Logger
 from app.schema import FunctionType, Token, TokenType
 from app.statement import (
     BlockStmt,
+    ClassStmt,
     ExpressionStmt,
     FlowStmt,
     FunctionStmt,
@@ -179,3 +182,21 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
 
     def visit_ternary_expr(self, expr: TernaryExpr) -> None:
         raise NotImplementedError("Resolver.visit_ternary_expr not implemented")
+
+    def visit_class_stmt(self, stmt: ClassStmt) -> None:
+        self._declare(stmt.name)
+        self._define(stmt.name)
+
+        for method in stmt.methods:
+            declaration = FunctionType.METHOD
+            if method.name.lexeme == "init":
+                declaration = FunctionType.INITIALIZER
+
+            self._resolve_function(method, declaration)
+
+    def visit_get_expr(self, expr: GetExpr) -> None:
+        self._resolve(expr.object)
+
+    def visit_set_expr(self, expr: SetExpr) -> None:
+        self._resolve(expr.value)
+        self._resolve(expr.object)

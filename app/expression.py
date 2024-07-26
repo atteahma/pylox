@@ -41,6 +41,12 @@ class ExprVisitor(Generic[R], ABC):
     @abstractmethod
     def visit_call_expr(self, expr: CallExpr) -> R: ...
 
+    @abstractmethod
+    def visit_get_expr(self, expr: GetExpr) -> R: ...
+
+    @abstractmethod
+    def visit_set_expr(self, expr: SetExpr) -> R: ...
+
 
 class Expr(AstNode):
     @abstractmethod
@@ -127,3 +133,22 @@ class CallExpr(Expr):
 
     def accept(self, visitor: ExprVisitor[R]) -> R:
         return visitor.visit_call_expr(self)
+
+
+@dataclass(frozen=True, eq=False)
+class GetExpr(Expr):
+    object: Expr
+    name: Token
+
+    def accept(self, visitor: ExprVisitor[R]) -> R:
+        return visitor.visit_get_expr(self)
+
+
+@dataclass(frozen=True, eq=False)
+class SetExpr(Expr):
+    object: Expr
+    name: Token
+    value: Expr
+
+    def accept(self, visitor: ExprVisitor[R]) -> R:
+        return visitor.visit_set_expr(self)
