@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+from app.constants import MAX_ARG_COUNT
 from app.errors import LoxParserError
 from app.expression import (
     AssignExpr,
@@ -29,8 +30,6 @@ from app.statement import (
     VarStmt,
     WhileStmt,
 )
-
-MAX_ARG_COUNT = 255
 
 
 class Parser:

@@ -1,0 +1,3 @@
+MAX_ARG_COUNT = 255
+INIT_METHOD_NAME = "init"
+THIS_KEYWORD = "this"

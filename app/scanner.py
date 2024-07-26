@@ -1,4 +1,5 @@
 from typing import Any
+from app.constants import THIS_KEYWORD
 from app.logger import Logger
 from app.schema import Token, TokenType
 from app import util
@@ -16,7 +17,7 @@ KEYWORDS: dict[str, TokenType] = {
     "print": TokenType.PRINT,
     "return": TokenType.RETURN,
     "super": TokenType.SUPER,
-    "this": TokenType.THIS,
+    THIS_KEYWORD: TokenType.THIS,
     "true": TokenType.TRUE,
     "var": TokenType.VAR,
     "while": TokenType.WHILE,

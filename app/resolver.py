@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+from app.constants import INIT_METHOD_NAME, THIS_KEYWORD
 from app.errors import LoxResolverError
 from app.expression import (
     AssignExpr,
@@ -194,11 +195,11 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
         self._define(stmt.name)
 
         self._begin_scope()
-        self._scopes[-1]["this"] = True
+        self._scopes[-1][THIS_KEYWORD] = True
 
         for method in stmt.methods:
             declaration = FunctionType.METHOD
-            if method.name.lexeme == "init":
+            if method.name.lexeme == INIT_METHOD_NAME:
                 declaration = FunctionType.INITIALIZER
 
             self._resolve_function(method, declaration)

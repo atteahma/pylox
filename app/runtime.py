@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
+from app.constants import INIT_METHOD_NAME, THIS_KEYWORD
 from app.environment import Environment
 from app.errors import LoxReturnException, LoxRuntimeError
 from app.schema import Token
@@ -64,7 +65,7 @@ class LoxFunction(LoxCallable):
 
     def bind(self, instance: LoxInstance) -> LoxFunction:
         environment = Environment(self._closure)
-        environment.define("this", instance)
+        environment.define(THIS_KEYWORD, instance)
         return LoxFunction(self._declaration, environment)
 
     def call(
@@ -103,6 +104,11 @@ class LoxClass(LoxCallable):
         self, interpreter: Interpreter, arguments: Sequence[LoxObject]
     ) -> LoxObject:
         instance = LoxInstance(self)
+
+        initializer = self.find_method(INIT_METHOD_NAME)
+        if initializer is not None:
+            initializer.bind(instance).call(interpreter, arguments)
+
         return instance
 
     def arity(self) -> int:
