@@ -1,7 +1,14 @@
-class Node {
+// SingleLinkNode is only to show that the interpreter supports inheritance
+class SingleLinkNode {
   init(value) {
     this.value = value;
     this.next = nil;
+  }
+}
+
+class Node < SingleLinkNode {
+  init(value) {
+    super.init(value);
     this.prev = nil;
   }
 }
@@ -143,7 +150,7 @@ fun initList(size, doRandom) {
   for (var i = 0; i < size; i = i + 1) {
     var value = i;
     if (doRandom) {
-      value = random();
+      value = randInt(1, size);
     }
 
     list.append(value);
@@ -152,5 +159,28 @@ fun initList(size, doRandom) {
   return list;
 }
 
+// closures!
+fun iterList(list) {
+  var node = list.head.next;
+
+  fun iter() {
+    if (node == list.tail) {
+      return nil;
+    }
+
+    var value = node.value;
+    node = node.next;
+
+    return value;
+  }
+
+  return iter;
+}
+
 var list = initList(10, true);
 print list.toString();
+
+var iter = iterList(list);
+print iter();
+print iter();
+print iter();
