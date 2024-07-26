@@ -5,7 +5,10 @@ from dataclasses import dataclass
 from typing import Generic, TypeVar
 
 from app.expression import Expr
-from app.schema import Token
+from app.schema import AstNode, Token
+
+# All AstNode dataclasses are @dataclass(frozen=True, eq=False)
+# Because we want to inherit __hash__ from AstNode
 
 R = TypeVar("R", covariant=True)
 
@@ -39,12 +42,12 @@ class StmtVisitor(Generic[R], ABC):
     def visit_return_stmt(self, stmt: ReturnStmt) -> R: ...
 
 
-class Stmt(ABC):
+class Stmt(AstNode):
     @abstractmethod
     def accept(self, visitor: StmtVisitor[R]) -> R: ...
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class ExpressionStmt(Stmt):
     expr: Expr
 
@@ -52,7 +55,7 @@ class ExpressionStmt(Stmt):
         return visitor.visit_expression_stmt(self)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class PrintStmt(Stmt):
     expr: Expr
 
@@ -60,7 +63,7 @@ class PrintStmt(Stmt):
         return visitor.visit_print_stmt(self)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class VarStmt(Stmt):
     name: Token
     initializer: Expr | None
@@ -69,7 +72,7 @@ class VarStmt(Stmt):
         return visitor.visit_var_stmt(self)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class BlockStmt(Stmt):
     statements: list[Stmt]
 
@@ -77,7 +80,7 @@ class BlockStmt(Stmt):
         return visitor.visit_block_stmt(self)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class IfStmt(Stmt):
     condition: Expr
     then_stmt: Stmt
@@ -87,7 +90,7 @@ class IfStmt(Stmt):
         return visitor.visit_if_stmt(self)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class WhileStmt(Stmt):
     condition: Expr
     body: Stmt
@@ -96,7 +99,7 @@ class WhileStmt(Stmt):
         return visitor.visit_while_stmt(self)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class FlowStmt(Stmt):
     token: Token
 
@@ -104,7 +107,7 @@ class FlowStmt(Stmt):
         return visitor.visit_flow_stmt(self)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class FunctionStmt(Stmt):
     name: Token
     params: list[Token]
@@ -114,7 +117,7 @@ class FunctionStmt(Stmt):
         return visitor.visit_function_stmt(self)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class ReturnStmt(Stmt):
     keyword: Token
     value: Expr | None

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import ABC
 from dataclasses import dataclass
 from enum import StrEnum, auto
 from typing import TYPE_CHECKING, Generic, TypeVar
@@ -77,7 +78,7 @@ class Token:
 
     def __repr__(self) -> str:
         literal_str = "null" if self.literal is None else self.literal
-        return f"{self.type_.upper()} {self.lexeme} {literal_str}"
+        return f"{self.type_.upper()} {self.lexeme} {literal_str} {self.line}"
 
 
 ResultValue = TypeVar("ResultValue")
@@ -102,3 +103,8 @@ class OpMode(StrEnum):
 
 class FunctionType(StrEnum):
     FUNCTION = auto()
+
+
+class AstNode(ABC):
+    def __hash__(self) -> int:
+        return id(self)

@@ -5,8 +5,10 @@ from dataclasses import dataclass
 from typing import Generic, TypeVar
 
 from app.runtime import LoxObject
-from app.schema import Token
+from app.schema import AstNode, Token
 
+# All AstNode dataclasses are @dataclass(frozen=True, eq=False)
+# Because we want to inherit __hash__ from AstNode
 
 R = TypeVar("R", covariant=True)
 
@@ -40,12 +42,12 @@ class ExprVisitor(Generic[R], ABC):
     def visit_call_expr(self, expr: CallExpr) -> R: ...
 
 
-class Expr(ABC):
+class Expr(AstNode):
     @abstractmethod
     def accept(self, visitor: ExprVisitor[R]) -> R: ...
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class BinaryExpr(Expr):
     left: Expr
     operator: Token
@@ -55,7 +57,7 @@ class BinaryExpr(Expr):
         return visitor.visit_binary_expr(self)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class TernaryExpr(Expr):
     condition: Expr
     true_expr: Expr
@@ -65,7 +67,7 @@ class TernaryExpr(Expr):
         return visitor.visit_ternary_expr(self)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class GroupingExpr(Expr):
     expr: Expr
 
@@ -73,7 +75,7 @@ class GroupingExpr(Expr):
         return visitor.visit_grouping_expr(self)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class LiteralExpr(Expr):
     value: LoxObject
 
@@ -81,7 +83,7 @@ class LiteralExpr(Expr):
         return visitor.visit_literal_expr(self)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class UnaryExpr(Expr):
     operator: Token
     expr: Expr
@@ -90,7 +92,7 @@ class UnaryExpr(Expr):
         return visitor.visit_unary_expr(self)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class VariableExpr(Expr):
     name: Token
 
@@ -98,7 +100,7 @@ class VariableExpr(Expr):
         return visitor.visit_variable_expr(self)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class AssignExpr(Expr):
     name: Token
     value_expr: Expr
@@ -107,7 +109,7 @@ class AssignExpr(Expr):
         return visitor.visit_assign_expr(self)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class LogicalExpr(Expr):
     left: Expr
     operator: Token
@@ -117,7 +119,7 @@ class LogicalExpr(Expr):
         return visitor.visit_logical_expr(self)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class CallExpr(Expr):
     callee: Expr
     paren: Token
