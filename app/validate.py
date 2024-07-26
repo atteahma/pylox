@@ -6,6 +6,8 @@ from app.runtime import LoxObject
 def number_operand(token: Token, operand: LoxObject) -> float:
     if isinstance(operand, float):
         return operand
+    if isinstance(operand, int):
+        return float(operand)
 
     raise LoxRuntimeError(
         token,
@@ -16,10 +18,13 @@ def number_operand(token: Token, operand: LoxObject) -> float:
 def number_operands(
     token: Token, left: LoxObject, right: LoxObject
 ) -> tuple[float, float]:
+    if isinstance(left, int):
+        left = float(left)
+    if isinstance(right, int):
+        right = float(right)
+
     if isinstance(left, float) and isinstance(right, float):
         return left, right
-    if isinstance(left, int) and isinstance(right, int):
-        return float(left), float(right)
 
     raise LoxRuntimeError(
         token,
@@ -30,10 +35,13 @@ def number_operands(
 def number_or_string_operands(
     token: Token, left: LoxObject, right: LoxObject
 ) -> tuple[float, float] | tuple[str, str]:
+    if isinstance(left, int):
+        left = float(left)
+    if isinstance(right, int):
+        right = float(right)
+
     if isinstance(left, float) and isinstance(right, float):
         return left, right
-    if isinstance(left, int) and isinstance(right, int):
-        return float(left), float(right)
     if isinstance(left, str) and isinstance(right, str):
         return left, right
 

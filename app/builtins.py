@@ -68,9 +68,39 @@ class Stringify(LoxCallable):
         return "<native fn 'stringify'>"
 
 
+class Len(LoxCallable):
+    def arity(self) -> int:
+        return 1
+
+    def call(self, _: Interpreter, arguments: Sequence[LoxObject], token: Token) -> int:
+        if not isinstance(arguments[0], str):
+            raise LoxRuntimeError(token, "Argument to len must be a string.")
+
+        return len(arguments[0])
+
+    def __str__(self) -> str:
+        return "<native fn 'len'>"
+
+
+class Round(LoxCallable):
+    def arity(self) -> int:
+        return 1
+
+    def call(self, _: Interpreter, arguments: Sequence[LoxObject], token: Token) -> int:
+        if not isinstance(arguments[0], (float, int)):
+            raise LoxRuntimeError(token, "Argument to round must be a number.")
+
+        return round(arguments[0])
+
+    def __str__(self) -> str:
+        return "<native fn 'round'>"
+
+
 BUILTINS: dict[str, Callable] = {
     "clock": Clock,
     "randInt": RandInt,
     "random": Random,
     "stringify": Stringify,
+    "len": Len,
+    "round": Round,
 }
