@@ -5,50 +5,21 @@ from app import builtins, util
 from app.constants import CONSTRUCTOR_METHOD_NAME, SUPER_KEYWORD, THIS_KEYWORD
 from app.environment import Environment
 from app.errors import LoxLoopException, LoxReturnException, LoxRuntimeError
-from app.expression import (
-    AssignExpr,
-    BinaryExpr,
-    CallExpr,
-    Expr,
-    GetExpr,
-    GroupingExpr,
-    LiteralExpr,
-    LogicalExpr,
-    SetExpr,
-    SuperExpr,
-    TernaryExpr,
-    ThisExpr,
-    UnaryExpr,
-    ExprVisitor,
-    VariableExpr,
-)
+from app import expression as Expr
 from app.logger import Logger
 from app.schema import OpMode, Token, TokenType
 from app.runtime import LoxCallable, LoxClass, LoxFunction, LoxInstance, LoxObject
-from app.statement import (
-    BlockStmt,
-    ClassStmt,
-    ExpressionStmt,
-    FlowStmt,
-    FunctionStmt,
-    IfStmt,
-    PrintStmt,
-    ReturnStmt,
-    Stmt,
-    StmtVisitor,
-    VarStmt,
-    WhileStmt,
-)
+from app import statement as Stmt
 from app import validate
 
 
-class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
+class Interpreter(Expr.Visitor[LoxObject], Stmt.Visitor[None]):
     globals: Environment
 
     _logger: Logger
     _environment: Environment
     _op_mode: OpMode
-    _locals: dict[Expr, int]
+    _locals: dict[Expr.Expr, int]
 
     def __init__(self, logger: Logger, op_mode: OpMode):
         self._logger = logger
@@ -61,7 +32,7 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
 
         self.globals.define("clock", builtins.Clock())
 
-    def interpret(self, statements: Sequence[Stmt]) -> None:
+    def interpret(self, statements: Sequence[Stmt.Stmt]) -> None:
         try:
             try:
                 for statement in statements:
@@ -71,19 +42,19 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
         except LoxRuntimeError as err:
             self._logger.report_runtime(err)
 
-    def _execute_mode(self, statement: Stmt) -> None:
-        if self._op_mode == OpMode.REPL and isinstance(statement, ExpressionStmt):
+    def _execute_mode(self, statement: Stmt.Stmt) -> None:
+        if self._op_mode == OpMode.REPL and isinstance(statement, Stmt.Expression):
             value = self._evaluate(statement.expr)
             print(util.stringify(value), file=sys.stdout)
             return
 
         self._execute(statement)
 
-    def _execute(self, statement: Stmt) -> None:
+    def _execute(self, statement: Stmt.Stmt) -> None:
         statement.accept(self)
 
     def execute_block(
-        self, statements: Sequence[Stmt], environment: Environment
+        self, statements: Sequence[Stmt.Stmt], environment: Environment
     ) -> None:
         previous = self._environment
 
@@ -95,14 +66,14 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
         finally:
             self._environment = previous
 
-    def _evaluate(self, expression: Expr) -> LoxObject:
+    def _evaluate(self, expression: Expr.Expr) -> LoxObject:
         return expression.accept(self)
 
-    def resolve(self, expr: Expr, depth: int) -> None:
+    def resolve(self, expr: Expr.Expr, depth: int) -> None:
         self._locals[expr] = depth
 
     def _look_up_variable(
-        self, name: Token, expr: VariableExpr | ThisExpr
+        self, name: Token, expr: Expr.Variable | Expr.This
     ) -> LoxObject:
         distance = self._locals.get(expr)
 
@@ -111,7 +82,7 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
 
         return self._environment.get_at(distance, name.lexeme)
 
-    def visit_binary_expr(self, expr: BinaryExpr) -> LoxObject:
+    def visit_binary_expr(self, expr: Expr.Binary) -> LoxObject:
         left = self._evaluate(expr.left)
         right = self._evaluate(expr.right)
 
@@ -149,13 +120,13 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
 
         return None
 
-    def visit_grouping_expr(self, expr: GroupingExpr) -> LoxObject:
+    def visit_grouping_expr(self, expr: Expr.Grouping) -> LoxObject:
         return self._evaluate(expr.expr)
 
-    def visit_literal_expr(self, expr: LiteralExpr) -> LoxObject:
+    def visit_literal_expr(self, expr: Expr.Literal) -> LoxObject:
         return expr.value
 
-    def visit_unary_expr(self, expr: UnaryExpr) -> LoxObject:
+    def visit_unary_expr(self, expr: Expr.Unary) -> LoxObject:
         value = self._evaluate(expr.expr)
 
         match (expr.operator.type_):
@@ -167,7 +138,7 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
 
         return None
 
-    def visit_ternary_expr(self, expr: TernaryExpr) -> LoxObject:
+    def visit_ternary_expr(self, expr: Expr.Ternary) -> LoxObject:
         condition = self._evaluate(expr.condition)
 
         if util.is_truthy(condition):
@@ -175,10 +146,10 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
 
         return self._evaluate(expr.false_expr)
 
-    def visit_variable_expr(self, expr: VariableExpr) -> LoxObject:
+    def visit_variable_expr(self, expr: Expr.Variable) -> LoxObject:
         return self._look_up_variable(expr.name, expr)
 
-    def visit_assign_expr(self, expr: AssignExpr) -> LoxObject:
+    def visit_assign_expr(self, expr: Expr.Assign) -> LoxObject:
         value = self._evaluate(expr.value_expr)
 
         distance = self._locals.get(expr)
@@ -189,7 +160,7 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
 
         return value
 
-    def visit_logical_expr(self, expr: LogicalExpr) -> LoxObject:
+    def visit_logical_expr(self, expr: Expr.Logical) -> LoxObject:
         left = self._evaluate(expr.left)
 
         if expr.operator.type_ == TokenType.OR and util.is_truthy(left):
@@ -199,7 +170,7 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
 
         return self._evaluate(expr.right)
 
-    def visit_call_expr(self, expr: CallExpr) -> LoxObject:
+    def visit_call_expr(self, expr: Expr.Call) -> LoxObject:
         func = self._evaluate(expr.callee)
         arguments = [self._evaluate(arg) for arg in expr.arguments]
 
@@ -214,14 +185,14 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
 
         return func.call(self, arguments)
 
-    def visit_get_expr(self, expr: GetExpr) -> LoxObject:
+    def visit_get_expr(self, expr: Expr.Get) -> LoxObject:
         object_ = self._evaluate(expr.object)
         if not isinstance(object_, LoxInstance):
             raise LoxRuntimeError(expr.name, "Only instances have properties.")
 
         return object_.get(expr.name)
 
-    def visit_set_expr(self, expr: SetExpr) -> LoxObject:
+    def visit_set_expr(self, expr: Expr.Set) -> LoxObject:
         object_ = self._evaluate(expr.object)
         if not isinstance(object_, LoxInstance):
             raise LoxRuntimeError(expr.name, "Only instances have fields.")
@@ -231,10 +202,10 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
 
         return value
 
-    def visit_this_expr(self, expr: ThisExpr) -> LoxObject:
+    def visit_this_expr(self, expr: Expr.This) -> LoxObject:
         return self._look_up_variable(expr.keyword, expr)
 
-    def visit_super_expr(self, expr: SuperExpr) -> LoxObject:
+    def visit_super_expr(self, expr: Expr.Super) -> LoxObject:
         distance = self._locals[expr]
         superclass = self._environment.get_at(distance, SUPER_KEYWORD)
         object_ = self._environment.get_at(distance - 1, THIS_KEYWORD)
@@ -250,25 +221,25 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
 
         return method.bind(object_)
 
-    def visit_expression_stmt(self, stmt: ExpressionStmt) -> None:
+    def visit_expression_stmt(self, stmt: Stmt.Expression) -> None:
         self._evaluate(stmt.expr)
 
-    def visit_print_stmt(self, stmt: PrintStmt) -> None:
+    def visit_print_stmt(self, stmt: Stmt.Print) -> None:
         value = self._evaluate(stmt.expr)
         print(util.stringify(value), file=sys.stdout)
 
-    def visit_var_stmt(self, stmt: VarStmt) -> None:
+    def visit_var_stmt(self, stmt: Stmt.Var) -> None:
         value = None
         if stmt.initializer is not None:
             value = self._evaluate(stmt.initializer)
 
         self._environment.define(stmt.name.lexeme, value)
 
-    def visit_block_stmt(self, stmt: BlockStmt) -> None:
+    def visit_block_stmt(self, stmt: Stmt.Block) -> None:
         environment = Environment(enclosing=self._environment)
         self.execute_block(stmt.statements, environment)
 
-    def visit_if_stmt(self, stmt: IfStmt) -> None:
+    def visit_if_stmt(self, stmt: Stmt.If) -> None:
         condition = self._evaluate(stmt.condition)
 
         if util.is_truthy(condition):
@@ -276,7 +247,7 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
         elif stmt.else_stmt is not None:
             self._execute(stmt.else_stmt)
 
-    def visit_while_stmt(self, stmt: WhileStmt) -> None:
+    def visit_while_stmt(self, stmt: Stmt.While) -> None:
         while util.is_truthy(self._evaluate(stmt.condition)):
             try:
                 self._execute(stmt.body)
@@ -288,21 +259,21 @@ class Interpreter(ExprVisitor[LoxObject], StmtVisitor[None]):
 
                 raise exc
 
-    def visit_flow_stmt(self, stmt: FlowStmt) -> None:
+    def visit_flow_stmt(self, stmt: Stmt.Flow) -> None:
         raise LoxLoopException(stmt.token)
 
-    def visit_function_stmt(self, stmt: FunctionStmt) -> None:
+    def visit_function_stmt(self, stmt: Stmt.Function) -> None:
         func = LoxFunction(stmt, self._environment, False)
         self._environment.define(stmt.name.lexeme, func)
 
-    def visit_return_stmt(self, stmt: ReturnStmt) -> None:
+    def visit_return_stmt(self, stmt: Stmt.Return) -> None:
         value: LoxObject = None
         if stmt.value is not None:
             value = self._evaluate(stmt.value)
 
         raise LoxReturnException(stmt.keyword, value)
 
-    def visit_class_stmt(self, stmt: ClassStmt) -> None:
+    def visit_class_stmt(self, stmt: Stmt.Class) -> None:
         superclass = None
         if stmt.superclass is not None:
             superclass = self._evaluate(stmt.superclass)

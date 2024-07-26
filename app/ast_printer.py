@@ -1,22 +1,10 @@
 import sys
 from app import util
-from app.expression import (
-    AssignExpr,
-    BinaryExpr,
-    CallExpr,
-    Expr,
-    GroupingExpr,
-    LiteralExpr,
-    LogicalExpr,
-    TernaryExpr,
-    UnaryExpr,
-    ExprVisitor,
-    VariableExpr,
-)
+from app import expression as Expr
 
 
-class AstPrinter(ExprVisitor[str]):
-    def _parenthesize(self, name: str, *exprs: Expr) -> str:
+class AstPrinter(Expr.Visitor[str]):
+    def _parenthesize(self, name: str, *exprs: Expr.Expr) -> str:
         parts = []
 
         parts.append("(")
@@ -30,34 +18,46 @@ class AstPrinter(ExprVisitor[str]):
 
         return "".join(parts)
 
-    def visit_binary_expr(self, expr: BinaryExpr) -> str:
+    def visit_binary_expr(self, expr: Expr.Binary) -> str:
         return self._parenthesize(expr.operator.lexeme, expr.left, expr.right)
 
-    def visit_grouping_expr(self, expr: GroupingExpr) -> str:
+    def visit_grouping_expr(self, expr: Expr.Grouping) -> str:
         return self._parenthesize("group", expr.expr)
 
-    def visit_literal_expr(self, expr: LiteralExpr) -> str:
+    def visit_literal_expr(self, expr: Expr.Literal) -> str:
         return util.stringify(expr.value, double_to_int=False)
 
-    def visit_unary_expr(self, expr: UnaryExpr) -> str:
+    def visit_unary_expr(self, expr: Expr.Unary) -> str:
         return self._parenthesize(expr.operator.lexeme, expr.expr)
 
-    def visit_ternary_expr(self, expr: TernaryExpr) -> str:
+    def visit_ternary_expr(self, expr: Expr.Ternary) -> str:
         return self._parenthesize("?", expr.condition, expr.true_expr, expr.false_expr)
 
-    def visit_variable_expr(self, expr: VariableExpr) -> str:
+    def visit_variable_expr(self, expr: Expr.Variable) -> str:
         return expr.name.lexeme
 
-    def visit_assign_expr(self, expr: AssignExpr) -> str:
+    def visit_assign_expr(self, expr: Expr.Assign) -> str:
         return self._parenthesize(expr.name.lexeme, expr.value_expr)
 
-    def visit_logical_expr(self, expr: LogicalExpr) -> str:
+    def visit_logical_expr(self, expr: Expr.Logical) -> str:
         raise NotImplementedError("AstPrinter.visit_logical_expr not implemented")
 
-    def visit_call_expr(self, expr: CallExpr) -> str:
+    def visit_call_expr(self, expr: Expr.Call) -> str:
         raise NotImplementedError("AstPrinter.visit_call_expr not implemented")
 
-    def print(self, expr: Expr) -> str:
+    def visit_get_expr(self, expr: Expr.Get) -> str:
+        raise NotImplementedError("AstPrinter.visit_get_expr not implemented")
+
+    def visit_set_expr(self, expr: Expr.Set) -> str:
+        raise NotImplementedError("AstPrinter.visit_set_expr not implemented")
+
+    def visit_this_expr(self, expr: Expr.This) -> str:
+        raise NotImplementedError("AstPrinter.visit_this_expr not implemented")
+
+    def visit_super_expr(self, expr: Expr.Super) -> str:
+        raise NotImplementedError("AstPrinter.visit_super_expr not implemented")
+
+    def print(self, expr: Expr.Expr) -> str:
         value = expr.accept(self)
         print(value, file=sys.stdout)
         return value

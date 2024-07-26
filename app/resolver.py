@@ -1,43 +1,14 @@
 from collections.abc import Sequence
 from app.constants import CONSTRUCTOR_METHOD_NAME, SUPER_KEYWORD, THIS_KEYWORD
 from app.errors import LoxResolverError
-from app.expression import (
-    AssignExpr,
-    BinaryExpr,
-    CallExpr,
-    Expr,
-    ExprVisitor,
-    GetExpr,
-    GroupingExpr,
-    LiteralExpr,
-    LogicalExpr,
-    SetExpr,
-    SuperExpr,
-    TernaryExpr,
-    ThisExpr,
-    UnaryExpr,
-    VariableExpr,
-)
+from app import expression as Expr
+from app import statement as Stmt
 from app.interpreter import Interpreter
 from app.logger import Logger
 from app.schema import ClassType, FunctionType, Token, TokenType
-from app.statement import (
-    BlockStmt,
-    ClassStmt,
-    ExpressionStmt,
-    FlowStmt,
-    FunctionStmt,
-    IfStmt,
-    PrintStmt,
-    ReturnStmt,
-    Stmt,
-    StmtVisitor,
-    VarStmt,
-    WhileStmt,
-)
 
 
-class Resolver(ExprVisitor[None], StmtVisitor[None]):
+class Resolver(Expr.Visitor[None], Stmt.Visitor[None]):
     _logger: Logger
     _interpreter: Interpreter
     _scopes: list[dict[str, bool]]
@@ -51,11 +22,11 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
         self._current_function = None
         self._current_class = None
 
-    def resolve(self, statements: Sequence[Stmt]) -> None:
+    def resolve(self, statements: Sequence[Stmt.Stmt]) -> None:
         for statement in statements:
             self._resolve(statement)
 
-    def _resolve(self, thing: Expr | Stmt) -> None:
+    def _resolve(self, thing: Expr.Expr | Stmt.Stmt) -> None:
         thing.accept(self)
 
     def _begin_scope(self) -> None:
@@ -88,13 +59,13 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
 
         return LoxResolverError()
 
-    def _resolve_local(self, expr: Expr, name: Token) -> None:
+    def _resolve_local(self, expr: Expr.Expr, name: Token) -> None:
         for i_from_end, scope in enumerate(reversed(self._scopes)):
             if name.lexeme in scope:
                 self._interpreter.resolve(expr, i_from_end)
                 return
 
-    def _resolve_function(self, function: FunctionStmt, type_: FunctionType) -> None:
+    def _resolve_function(self, function: Stmt.Function, type_: FunctionType) -> None:
         enclosing_function = self._current_function
         self._current_function = type_
 
@@ -108,18 +79,18 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
 
         self._current_function = enclosing_function
 
-    def visit_block_stmt(self, stmt: BlockStmt) -> None:
+    def visit_block_stmt(self, stmt: Stmt.Block) -> None:
         self._begin_scope()
         self.resolve(stmt.statements)
         self._end_scope()
 
-    def visit_var_stmt(self, stmt: VarStmt) -> None:
+    def visit_var_stmt(self, stmt: Stmt.Var) -> None:
         self._declare(stmt.name)
         if stmt.initializer is not None:
             self._resolve(stmt.initializer)
         self._define(stmt.name)
 
-    def visit_variable_expr(self, expr: VariableExpr) -> None:
+    def visit_variable_expr(self, expr: Expr.Variable) -> None:
         scope = self._scopes[-1] if self._scopes else None
 
         if scope is not None and scope.get(expr.name.lexeme) is False:
@@ -127,29 +98,29 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
 
         self._resolve_local(expr, expr.name)
 
-    def visit_assign_expr(self, expr: AssignExpr) -> None:
+    def visit_assign_expr(self, expr: Expr.Assign) -> None:
         self._resolve(expr.value_expr)
         self._resolve_local(expr, expr.name)
 
-    def visit_function_stmt(self, stmt: FunctionStmt) -> None:
+    def visit_function_stmt(self, stmt: Stmt.Function) -> None:
         self._declare(stmt.name)
         self._define(stmt.name)
 
         self._resolve_function(stmt, FunctionType.FUNCTION)
 
-    def visit_expression_stmt(self, stmt: ExpressionStmt) -> None:
+    def visit_expression_stmt(self, stmt: Stmt.Expression) -> None:
         self._resolve(stmt.expr)
 
-    def visit_if_stmt(self, stmt: IfStmt) -> None:
+    def visit_if_stmt(self, stmt: Stmt.If) -> None:
         self._resolve(stmt.condition)
         self._resolve(stmt.then_stmt)
         if stmt.else_stmt is not None:
             self._resolve(stmt.else_stmt)
 
-    def visit_print_stmt(self, stmt: PrintStmt) -> None:
+    def visit_print_stmt(self, stmt: Stmt.Print) -> None:
         self._resolve(stmt.expr)
 
-    def visit_return_stmt(self, stmt: ReturnStmt) -> None:
+    def visit_return_stmt(self, stmt: Stmt.Return) -> None:
         if self._current_function is None:
             self._error(stmt.keyword, "Can't return from top-level code.")
 
@@ -159,39 +130,39 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
 
             self._resolve(stmt.value)
 
-    def visit_while_stmt(self, stmt: WhileStmt) -> None:
+    def visit_while_stmt(self, stmt: Stmt.While) -> None:
         self._resolve(stmt.condition)
         self._resolve(stmt.body)
 
-    def visit_binary_expr(self, expr: BinaryExpr) -> None:
+    def visit_binary_expr(self, expr: Expr.Binary) -> None:
         self._resolve(expr.left)
         self._resolve(expr.right)
 
-    def visit_call_expr(self, expr: CallExpr) -> None:
+    def visit_call_expr(self, expr: Expr.Call) -> None:
         self._resolve(expr.callee)
         for argument in expr.arguments:
             self._resolve(argument)
 
-    def visit_grouping_expr(self, expr: GroupingExpr) -> None:
+    def visit_grouping_expr(self, expr: Expr.Grouping) -> None:
         self._resolve(expr.expr)
 
-    def visit_literal_expr(self, expr: LiteralExpr) -> None:
+    def visit_literal_expr(self, expr: Expr.Literal) -> None:
         pass
 
-    def visit_logical_expr(self, expr: LogicalExpr) -> None:
+    def visit_logical_expr(self, expr: Expr.Logical) -> None:
         self._resolve(expr.left)
         self._resolve(expr.right)
 
-    def visit_unary_expr(self, expr: UnaryExpr) -> None:
+    def visit_unary_expr(self, expr: Expr.Unary) -> None:
         self._resolve(expr.expr)
 
-    def visit_flow_stmt(self, stmt: FlowStmt) -> None:
+    def visit_flow_stmt(self, stmt: Stmt.Flow) -> None:
         pass
 
-    def visit_ternary_expr(self, expr: TernaryExpr) -> None:
+    def visit_ternary_expr(self, expr: Expr.Ternary) -> None:
         raise NotImplementedError("Resolver.visit_ternary_expr not implemented")
 
-    def visit_class_stmt(self, stmt: ClassStmt) -> None:
+    def visit_class_stmt(self, stmt: Stmt.Class) -> None:
         enclosing_class = self._current_class
         self._current_class = ClassType.CLASS
 
@@ -228,19 +199,19 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
 
         self._current_class = enclosing_class
 
-    def visit_get_expr(self, expr: GetExpr) -> None:
+    def visit_get_expr(self, expr: Expr.Get) -> None:
         self._resolve(expr.object)
 
-    def visit_set_expr(self, expr: SetExpr) -> None:
+    def visit_set_expr(self, expr: Expr.Set) -> None:
         self._resolve(expr.value)
         self._resolve(expr.object)
 
-    def visit_this_expr(self, expr: ThisExpr) -> None:
+    def visit_this_expr(self, expr: Expr.This) -> None:
         if self._current_class is None:
             self._error(expr.keyword, "Can't use 'this' outside of a class.")
             return
 
         self._resolve_local(expr, expr.keyword)
 
-    def visit_super_expr(self, expr: SuperExpr) -> None:
+    def visit_super_expr(self, expr: Expr.Super) -> None:
         self._resolve_local(expr, expr.keyword)

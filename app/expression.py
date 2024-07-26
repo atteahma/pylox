@@ -13,165 +13,165 @@ from app.schema import AstNode, Token
 R = TypeVar("R", covariant=True)
 
 
-class ExprVisitor(Generic[R], ABC):
+class Visitor(Generic[R], ABC):
     @abstractmethod
-    def visit_binary_expr(self, expr: BinaryExpr) -> R: ...
+    def visit_binary_expr(self, expr: Binary) -> R: ...
 
     @abstractmethod
-    def visit_grouping_expr(self, expr: GroupingExpr) -> R: ...
+    def visit_grouping_expr(self, expr: Grouping) -> R: ...
 
     @abstractmethod
-    def visit_literal_expr(self, expr: LiteralExpr) -> R: ...
+    def visit_literal_expr(self, expr: Literal) -> R: ...
 
     @abstractmethod
-    def visit_unary_expr(self, expr: UnaryExpr) -> R: ...
+    def visit_unary_expr(self, expr: Unary) -> R: ...
 
     @abstractmethod
-    def visit_ternary_expr(self, expr: TernaryExpr) -> R: ...
+    def visit_ternary_expr(self, expr: Ternary) -> R: ...
 
     @abstractmethod
-    def visit_variable_expr(self, expr: VariableExpr) -> R: ...
+    def visit_variable_expr(self, expr: Variable) -> R: ...
 
     @abstractmethod
-    def visit_assign_expr(self, expr: AssignExpr) -> R: ...
+    def visit_assign_expr(self, expr: Assign) -> R: ...
 
     @abstractmethod
-    def visit_logical_expr(self, expr: LogicalExpr) -> R: ...
+    def visit_logical_expr(self, expr: Logical) -> R: ...
 
     @abstractmethod
-    def visit_call_expr(self, expr: CallExpr) -> R: ...
+    def visit_call_expr(self, expr: Call) -> R: ...
 
     @abstractmethod
-    def visit_get_expr(self, expr: GetExpr) -> R: ...
+    def visit_get_expr(self, expr: Get) -> R: ...
 
     @abstractmethod
-    def visit_set_expr(self, expr: SetExpr) -> R: ...
+    def visit_set_expr(self, expr: Set) -> R: ...
 
     @abstractmethod
-    def visit_this_expr(self, expr: ThisExpr) -> R: ...
+    def visit_this_expr(self, expr: This) -> R: ...
 
     @abstractmethod
-    def visit_super_expr(self, expr: SuperExpr) -> R: ...
+    def visit_super_expr(self, expr: Super) -> R: ...
 
 
 class Expr(AstNode):
     @abstractmethod
-    def accept(self, visitor: ExprVisitor[R]) -> R: ...
+    def accept(self, visitor: Visitor[R]) -> R: ...
 
 
 @dataclass(frozen=True, eq=False)
-class BinaryExpr(Expr):
+class Binary(Expr):
     left: Expr
     operator: Token
     right: Expr
 
-    def accept(self, visitor: ExprVisitor[R]) -> R:
+    def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_binary_expr(self)
 
 
 @dataclass(frozen=True, eq=False)
-class TernaryExpr(Expr):
+class Ternary(Expr):
     condition: Expr
     true_expr: Expr
     false_expr: Expr
 
-    def accept(self, visitor: ExprVisitor[R]) -> R:
+    def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_ternary_expr(self)
 
 
 @dataclass(frozen=True, eq=False)
-class GroupingExpr(Expr):
+class Grouping(Expr):
     expr: Expr
 
-    def accept(self, visitor: ExprVisitor[R]) -> R:
+    def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_grouping_expr(self)
 
 
 @dataclass(frozen=True, eq=False)
-class LiteralExpr(Expr):
+class Literal(Expr):
     value: LoxObject
 
-    def accept(self, visitor: ExprVisitor[R]) -> R:
+    def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_literal_expr(self)
 
 
 @dataclass(frozen=True, eq=False)
-class UnaryExpr(Expr):
+class Unary(Expr):
     operator: Token
     expr: Expr
 
-    def accept(self, visitor: ExprVisitor[R]) -> R:
+    def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_unary_expr(self)
 
 
 @dataclass(frozen=True, eq=False)
-class VariableExpr(Expr):
+class Variable(Expr):
     name: Token
 
-    def accept(self, visitor: ExprVisitor[R]) -> R:
+    def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_variable_expr(self)
 
 
 @dataclass(frozen=True, eq=False)
-class AssignExpr(Expr):
+class Assign(Expr):
     name: Token
     value_expr: Expr
 
-    def accept(self, visitor: ExprVisitor[R]) -> R:
+    def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_assign_expr(self)
 
 
 @dataclass(frozen=True, eq=False)
-class LogicalExpr(Expr):
+class Logical(Expr):
     left: Expr
     operator: Token
     right: Expr
 
-    def accept(self, visitor: ExprVisitor[R]) -> R:
+    def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_logical_expr(self)
 
 
 @dataclass(frozen=True, eq=False)
-class CallExpr(Expr):
+class Call(Expr):
     callee: Expr
     paren: Token
     arguments: list[Expr]
 
-    def accept(self, visitor: ExprVisitor[R]) -> R:
+    def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_call_expr(self)
 
 
 @dataclass(frozen=True, eq=False)
-class GetExpr(Expr):
+class Get(Expr):
     object: Expr
     name: Token
 
-    def accept(self, visitor: ExprVisitor[R]) -> R:
+    def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_get_expr(self)
 
 
 @dataclass(frozen=True, eq=False)
-class SetExpr(Expr):
+class Set(Expr):
     object: Expr
     name: Token
     value: Expr
 
-    def accept(self, visitor: ExprVisitor[R]) -> R:
+    def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_set_expr(self)
 
 
 @dataclass(frozen=True, eq=False)
-class ThisExpr(Expr):
+class This(Expr):
     keyword: Token
 
-    def accept(self, visitor: ExprVisitor[R]) -> R:
+    def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_this_expr(self)
 
 
 @dataclass(frozen=True, eq=False)
-class SuperExpr(Expr):
+class Super(Expr):
     keyword: Token
     method: Token
 
-    def accept(self, visitor: ExprVisitor[R]) -> R:
+    def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_super_expr(self)

@@ -11,7 +11,7 @@ from app.schema import Token
 
 if TYPE_CHECKING:
     from app.interpreter import Interpreter
-    from app.statement import FunctionStmt
+    from app import statement as Stmt
 
 
 class LoxCallable(ABC):
@@ -56,12 +56,12 @@ LoxObject = LoxInstance | LoxCallable | float | str | bool | None
 
 
 class LoxFunction(LoxCallable):
-    _declaration: FunctionStmt
+    _declaration: Stmt.Function
     _closure: Environment
     _is_initializer: bool
 
     def __init__(
-        self, declaration: FunctionStmt, closure: Environment, is_initializer: bool
+        self, declaration: Stmt.Function, closure: Environment, is_initializer: bool
     ) -> None:
         self._declaration = declaration
         self._closure = closure

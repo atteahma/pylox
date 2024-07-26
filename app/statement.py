@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Generic, TypeVar
 
-from app.expression import Expr, VariableExpr
+from app import expression as Expr
 from app.schema import AstNode, Token
 
 # All AstNode dataclasses are @dataclass(frozen=True, eq=False)
@@ -13,127 +13,127 @@ from app.schema import AstNode, Token
 R = TypeVar("R", covariant=True)
 
 
-class StmtVisitor(Generic[R], ABC):
+class Visitor(Generic[R], ABC):
     @abstractmethod
-    def visit_expression_stmt(self, stmt: ExpressionStmt) -> R: ...
+    def visit_expression_stmt(self, stmt: Expression) -> R: ...
 
     @abstractmethod
-    def visit_print_stmt(self, stmt: PrintStmt) -> R: ...
+    def visit_print_stmt(self, stmt: Print) -> R: ...
 
     @abstractmethod
-    def visit_var_stmt(self, stmt: VarStmt) -> R: ...
+    def visit_var_stmt(self, stmt: Var) -> R: ...
 
     @abstractmethod
-    def visit_block_stmt(self, stmt: BlockStmt) -> R: ...
+    def visit_block_stmt(self, stmt: Block) -> R: ...
 
     @abstractmethod
-    def visit_if_stmt(self, stmt: IfStmt) -> R: ...
+    def visit_if_stmt(self, stmt: If) -> R: ...
 
     @abstractmethod
-    def visit_while_stmt(self, stmt: WhileStmt) -> R: ...
+    def visit_while_stmt(self, stmt: While) -> R: ...
 
     @abstractmethod
-    def visit_flow_stmt(self, stmt: FlowStmt) -> R: ...
+    def visit_flow_stmt(self, stmt: Flow) -> R: ...
 
     @abstractmethod
-    def visit_function_stmt(self, stmt: FunctionStmt) -> R: ...
+    def visit_function_stmt(self, stmt: Function) -> R: ...
 
     @abstractmethod
-    def visit_return_stmt(self, stmt: ReturnStmt) -> R: ...
+    def visit_return_stmt(self, stmt: Return) -> R: ...
 
     @abstractmethod
-    def visit_class_stmt(self, stmt: ClassStmt) -> R: ...
+    def visit_class_stmt(self, stmt: Class) -> R: ...
 
 
 class Stmt(AstNode):
     @abstractmethod
-    def accept(self, visitor: StmtVisitor[R]) -> R: ...
+    def accept(self, visitor: Visitor[R]) -> R: ...
 
 
 @dataclass(frozen=True, eq=False)
-class ExpressionStmt(Stmt):
-    expr: Expr
+class Expression(Stmt):
+    expr: Expr.Expr
 
-    def accept(self, visitor: StmtVisitor[R]) -> R:
+    def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_expression_stmt(self)
 
 
 @dataclass(frozen=True, eq=False)
-class PrintStmt(Stmt):
-    expr: Expr
+class Print(Stmt):
+    expr: Expr.Expr
 
-    def accept(self, visitor: StmtVisitor[R]) -> R:
+    def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_print_stmt(self)
 
 
 @dataclass(frozen=True, eq=False)
-class VarStmt(Stmt):
+class Var(Stmt):
     name: Token
-    initializer: Expr | None
+    initializer: Expr.Expr | None
 
-    def accept(self, visitor: StmtVisitor[R]) -> R:
+    def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_var_stmt(self)
 
 
 @dataclass(frozen=True, eq=False)
-class BlockStmt(Stmt):
+class Block(Stmt):
     statements: list[Stmt]
 
-    def accept(self, visitor: StmtVisitor[R]) -> R:
+    def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_block_stmt(self)
 
 
 @dataclass(frozen=True, eq=False)
-class IfStmt(Stmt):
-    condition: Expr
+class If(Stmt):
+    condition: Expr.Expr
     then_stmt: Stmt
     else_stmt: Stmt | None
 
-    def accept(self, visitor: StmtVisitor[R]) -> R:
+    def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_if_stmt(self)
 
 
 @dataclass(frozen=True, eq=False)
-class WhileStmt(Stmt):
-    condition: Expr
+class While(Stmt):
+    condition: Expr.Expr
     body: Stmt
 
-    def accept(self, visitor: StmtVisitor[R]) -> R:
+    def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_while_stmt(self)
 
 
 @dataclass(frozen=True, eq=False)
-class FlowStmt(Stmt):
+class Flow(Stmt):
     token: Token
 
-    def accept(self, visitor: StmtVisitor[R]) -> R:
+    def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_flow_stmt(self)
 
 
 @dataclass(frozen=True, eq=False)
-class FunctionStmt(Stmt):
+class Function(Stmt):
     name: Token
     params: list[Token]
     body: list[Stmt]
 
-    def accept(self, visitor: StmtVisitor[R]) -> R:
+    def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_function_stmt(self)
 
 
 @dataclass(frozen=True, eq=False)
-class ReturnStmt(Stmt):
+class Return(Stmt):
     keyword: Token
-    value: Expr | None
+    value: Expr.Expr | None
 
-    def accept(self, visitor: StmtVisitor[R]) -> R:
+    def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_return_stmt(self)
 
 
 @dataclass(frozen=True, eq=False)
-class ClassStmt(Stmt):
+class Class(Stmt):
     name: Token
-    superclass: VariableExpr | None
-    methods: list[FunctionStmt]
+    superclass: Expr.Variable | None
+    methods: list[Function]
 
-    def accept(self, visitor: StmtVisitor[R]) -> R:
+    def accept(self, visitor: Visitor[R]) -> R:
         return visitor.visit_class_stmt(self)
