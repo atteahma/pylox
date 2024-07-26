@@ -1,0 +1,49 @@
+fun fib(n) {
+    if (n < 2) return n;
+    return fib(n - 1) + fib(n - 2); 
+}
+
+fun pow(base, exponent) {
+    var result = 1;
+    for (var i = 0; i < exponent; i = i + 1) {
+        result = result * base;
+    }
+    return result;
+}
+
+fun round_to(n, places) {
+    var factor = pow(10, places);
+    return round(n * factor) / factor;
+}
+
+fun spaces(num) {
+    var result = "";
+    for (var i = 0; i < num; i = i + 1) {
+        result = result + " ";
+    }
+    return result;
+}
+
+fun tabulate(n, result, elapsed) {
+    var totalWidth = 30;
+    elapsed = round_to(elapsed, 4);
+
+    var nStr = stringify(n);
+    var resultStr = stringify(result);
+    var elapsedStr = stringify(elapsed);
+
+    var padding = totalWidth - len(nStr) - len(resultStr) - len(elapsedStr);
+    var paddingStr = spaces(padding);
+
+    print "fib(" + nStr + ") = " + resultStr + paddingStr + elapsedStr + " seconds";
+}
+
+for (var n = 1; n <= 40; n = n + 1) {
+    var before = clock();
+    var result = fib(n);
+    var after = clock();
+    
+    var elapsed = after - before;
+
+    tabulate(n, result, elapsed);
+}
