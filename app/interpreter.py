@@ -30,7 +30,8 @@ class Interpreter(Expr.Visitor[LoxObject], Stmt.Visitor[None]):
 
         self._locals = {}
 
-        self.globals.define("clock", builtins.Clock())
+        for name, cls in builtins.BUILTINS.items():
+            self.globals.define(name, cls())
 
     def interpret(self, statements: Sequence[Stmt.Stmt]) -> None:
         try:
@@ -183,7 +184,7 @@ class Interpreter(Expr.Visitor[LoxObject], Stmt.Visitor[None]):
                 f"Expected {func.arity()} arguments but got {len(arguments)}.",
             )
 
-        return func.call(self, arguments)
+        return func.call(self, arguments, expr.paren)
 
     def visit_get_expr(self, expr: Expr.Get) -> LoxObject:
         object_ = self._evaluate(expr.object)

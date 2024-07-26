@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 class LoxCallable(ABC):
     @abstractmethod
     def call(
-        self, interpreter: Interpreter, arguments: Sequence[LoxObject]
+        self, interpreter: Interpreter, arguments: Sequence[LoxObject], token: Token
     ) -> LoxObject: ...
 
     @abstractmethod
@@ -73,7 +73,7 @@ class LoxFunction(LoxCallable):
         return LoxFunction(self._declaration, environment, self._is_initializer)
 
     def call(
-        self, interpreter: Interpreter, arguments: Sequence[LoxObject]
+        self, interpreter: Interpreter, arguments: Sequence[LoxObject], token: Token
     ) -> LoxObject:
         parameters = self._declaration.params
         body = self._declaration.body
@@ -115,13 +115,13 @@ class LoxClass(LoxCallable):
         self._methods = methods
 
     def call(
-        self, interpreter: Interpreter, arguments: Sequence[LoxObject]
+        self, interpreter: Interpreter, arguments: Sequence[LoxObject], token: Token
     ) -> LoxObject:
         instance = LoxInstance(self)
 
         initializer = self.find_method(CONSTRUCTOR_METHOD_NAME)
         if initializer is not None:
-            initializer.bind(instance).call(interpreter, arguments)
+            initializer.bind(instance).call(interpreter, arguments, token)
 
         return instance
 
