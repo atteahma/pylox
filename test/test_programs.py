@@ -218,6 +218,32 @@ def test_simple_class():
     assert error == ""
 
 
+def test_class_this():
+    code = _code(
+        """
+        class Cake {
+            taste() {
+                var adjective = "delicious";
+                print "The " + this.flavor + " cake is " + adjective + "!";
+            }
+        }
+
+        var cake = Cake();
+        cake.flavor = "German chocolate";
+        cake.taste();
+        """
+    )
+
+    with _redirect() as (stdout, stderr):
+        assert main.run_text(Command.INTERPRET, code) == 0
+
+        output = stdout.getvalue()
+        error = stderr.getvalue()
+
+    assert output.strip() == "The German chocolate cake is delicious!"
+    assert error == ""
+
+
 def test_class_binding():
     code = _code(
         """

@@ -47,6 +47,9 @@ class ExprVisitor(Generic[R], ABC):
     @abstractmethod
     def visit_set_expr(self, expr: SetExpr) -> R: ...
 
+    @abstractmethod
+    def visit_this_expr(self, expr: ThisExpr) -> R: ...
+
 
 class Expr(AstNode):
     @abstractmethod
@@ -152,3 +155,11 @@ class SetExpr(Expr):
 
     def accept(self, visitor: ExprVisitor[R]) -> R:
         return visitor.visit_set_expr(self)
+
+
+@dataclass(frozen=True, eq=False)
+class ThisExpr(Expr):
+    keyword: Token
+
+    def accept(self, visitor: ExprVisitor[R]) -> R:
+        return visitor.visit_this_expr(self)

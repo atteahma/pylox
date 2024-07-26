@@ -10,6 +10,7 @@ from app.expression import (
     LiteralExpr,
     LogicalExpr,
     SetExpr,
+    ThisExpr,
     UnaryExpr,
     VariableExpr,
 )
@@ -441,7 +442,7 @@ class Parser:
 
         return CallExpr(callee, paren, arguments)
 
-    def _primary(self) -> LiteralExpr | VariableExpr | GroupingExpr:
+    def _primary(self) -> LiteralExpr | VariableExpr | GroupingExpr | ThisExpr:
         if self._match(TokenType.TRUE):
             return LiteralExpr(True)
         if self._match(TokenType.FALSE):
@@ -452,6 +453,9 @@ class Parser:
         if self._match(TokenType.NUMBER, TokenType.STRING):
             token = self._peek(offset=-1)
             return LiteralExpr(token.literal)
+
+        if self._match(TokenType.THIS):
+            return ThisExpr(self._peek(offset=-1))
 
         if self._match(TokenType.IDENTIFIER):
             return VariableExpr(self._peek(offset=-1))

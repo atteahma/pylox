@@ -12,6 +12,7 @@ from app.expression import (
     LogicalExpr,
     SetExpr,
     TernaryExpr,
+    ThisExpr,
     UnaryExpr,
     VariableExpr,
 )
@@ -200,3 +201,6 @@ class Resolver(ExprVisitor[None], StmtVisitor[None]):
     def visit_set_expr(self, expr: SetExpr) -> None:
         self._resolve(expr.value)
         self._resolve(expr.object)
+
+    def visit_this_expr(self, expr: ThisExpr) -> None:
+        self._resolve_local(expr, expr.keyword)
