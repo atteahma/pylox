@@ -4,6 +4,8 @@ This is a pure Python from scratch implementation of a tree-walking interpreter 
 
 To see some things the interpreter supports, see `test.lox`.
 
+## Features
+
 Core Features:
 - Tokens and Lexing
 - Abstract Syntax Trees
@@ -32,12 +34,14 @@ Extra Features:
 - RandInt builtin
 - Stringify builtin
 
+## Getting Started
+
 ### Prerequisites
 
 - Python 3.12
 - Pipenv
 
-### Getting Started
+### Running
 
 To run in REPL mode:
 ```
@@ -49,6 +53,6 @@ To run on a file:
 $ ./run.sh interpret <filename>
 ```
 
-## Running the tests
+### Running the tests
 
 `$ pytest`
