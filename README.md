@@ -27,7 +27,7 @@ Core Features:
 
 Challenges:
 - Ternary expressions
-- Continue and Break statements
+- Break and continue statements
 
 Extra Features:
 - Random builtin
@@ -38,7 +38,7 @@ Extra Features:
 
 ### Prerequisites
 
-- Python 3.12
+- Python 3.11
 - Pipenv
 
 ### Running
