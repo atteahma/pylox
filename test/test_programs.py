@@ -14,17 +14,30 @@ def _code(text: str) -> str:
     return "\n".join(line[indent:] for line in lines)
 
 
-def _lines(*lines: Any) -> str:
-    if len(lines) == 1 and isinstance(lines[0], Generator):
-        lines = tuple(lines[0])
-    return "\n".join(map(str, lines))
-
-
 @contextmanager
 def _redirect() -> Generator[tuple[io.StringIO, io.StringIO], None, None]:
     with io.StringIO() as stdout, redirect_stdout(stdout):
         with io.StringIO() as stderr, redirect_stderr(stderr):
             yield stdout, stderr
+
+
+def _run(text: str) -> tuple[str, str, int]:
+    with _redirect() as (stdout, stderr):
+        try:
+            exit_code = main.run_text(Command.INTERPRET, text)
+        except Exception:
+            exit_code = 1
+
+        output = stdout.getvalue()
+        error = stderr.getvalue()
+
+    return output, error, exit_code
+
+
+def _lines(*lines: Any) -> str:
+    if len(lines) == 1 and isinstance(lines[0], Generator):
+        lines = tuple(lines[0])
+    return "\n".join(map(str, lines))
 
 
 @cache
@@ -47,12 +60,7 @@ def test_fib() -> None:
         }
         """
     )
-
-    with _redirect() as (stdout, stderr):
-        exit_code = main.run_text(Command.INTERPRET, code)
-
-        output = stdout.getvalue()
-        error = stderr.getvalue()
+    output, error, exit_code = _run(code)
 
     assert exit_code == 0, error
     assert output.strip() == _lines(_fib(i) for i in range(20))
@@ -77,12 +85,7 @@ def test_closure() -> None:
         print counter();
         """
     )
-
-    with _redirect() as (stdout, stderr):
-        exit_code = main.run_text(Command.INTERPRET, code)
-
-        output = stdout.getvalue()
-        error = stderr.getvalue()
+    output, error, exit_code = _run(code)
 
     assert exit_code == 0, error
     assert output.strip() == _lines(1, 2, 3)
@@ -104,12 +107,7 @@ def test_shadowing() -> None:
         }
         """
     )
-
-    with _redirect() as (stdout, stderr):
-        exit_code = main.run_text(Command.INTERPRET, code)
-
-        output = stdout.getvalue()
-        error = stderr.getvalue()
+    output, error, exit_code = _run(code)
 
     assert exit_code == 0, error
     assert output.strip() == _lines("global", "global")
@@ -124,12 +122,7 @@ def test_hello_word() -> None:
         print "world";
         """
     )
-
-    with _redirect() as (stdout, stderr):
-        exit_code = main.run_text(Command.INTERPRET, code)
-
-        output = stdout.getvalue()
-        error = stderr.getvalue()
+    output, error, exit_code = _run(code)
 
     assert exit_code == 0, error
     assert output.strip() == _lines("hello", "world")
@@ -144,12 +137,7 @@ def test_semicolon_error() -> None:
         print "world";
         """
     )
-
-    with _redirect() as (stdout, stderr):
-        exit_code = main.run_text(Command.INTERPRET, code)
-
-        output = stdout.getvalue()
-        error = stderr.getvalue()
+    output, error, exit_code = _run(code)
 
     assert exit_code == 65, output
     assert output == ""
@@ -165,12 +153,7 @@ def test_duplicate_declaration() -> None:
         }
         """
     )
-
-    with _redirect() as (stdout, stderr):
-        exit_code = main.run_text(Command.INTERPRET, code)
-
-        output = stdout.getvalue()
-        error = stderr.getvalue()
+    output, error, exit_code = _run(code)
 
     assert exit_code == 65, output
     assert output == ""
@@ -186,12 +169,7 @@ def test_global_return() -> None:
         return 1;
         """
     )
-
-    with _redirect() as (stdout, stderr):
-        exit_code = main.run_text(Command.INTERPRET, code)
-
-        output = stdout.getvalue()
-        error = stderr.getvalue()
+    output, error, exit_code = _run(code)
 
     assert exit_code == 65, output
     assert output == ""
@@ -212,12 +190,7 @@ def test_simple_class() -> None:
         Bacon().eat(); // Prints "Crunch crunch crunch!".
         """
     )
-
-    with _redirect() as (stdout, stderr):
-        exit_code = main.run_text(Command.INTERPRET, code)
-
-        output = stdout.getvalue()
-        error = stderr.getvalue()
+    output, error, exit_code = _run(code)
 
     assert exit_code == 0, error
     assert output.strip() == "Crunch crunch crunch!"
@@ -239,12 +212,7 @@ def test_class_this() -> None:
         cake.taste();
         """
     )
-
-    with _redirect() as (stdout, stderr):
-        exit_code = main.run_text(Command.INTERPRET, code)
-
-        output = stdout.getvalue()
-        error = stderr.getvalue()
+    output, error, exit_code = _run(code)
 
     assert exit_code == 0, error
     assert output.strip() == "The German chocolate cake is delicious!"
@@ -270,12 +238,7 @@ def test_class_binding() -> None:
         bill.sayName();
         """
     )
-
-    with _redirect() as (stdout, stderr):
-        exit_code = main.run_text(Command.INTERPRET, code)
-
-        output = stdout.getvalue()
-        error = stderr.getvalue()
+    output, error, exit_code = _run(code)
 
     assert exit_code == 0, error
     assert output.strip() == "Jane"
@@ -290,12 +253,7 @@ def test_this_outside_class() -> None:
         }
         """
     )
-
-    with _redirect() as (stdout, stderr):
-        exit_code = main.run_text(Command.INTERPRET, code)
-
-        output = stdout.getvalue()
-        error = stderr.getvalue()
+    output, error, exit_code = _run(code)
 
     assert exit_code == 65, output
     assert output == ""
@@ -322,12 +280,7 @@ def test_class_init() -> None:
         cake.taste();
         """
     )
-
-    with _redirect() as (stdout, stderr):
-        exit_code = main.run_text(Command.INTERPRET, code)
-
-        output = stdout.getvalue()
-        error = stderr.getvalue()
+    output, error, exit_code = _run(code)
 
     assert exit_code == 0, error
     assert output.strip() == "The German chocolate cake is delicious!"
@@ -348,12 +301,7 @@ def test_class_inheritance() -> None:
         BostonCream().cook();
         """
     )
-
-    with _redirect() as (stdout, stderr):
-        exit_code = main.run_text(Command.INTERPRET, code)
-
-        output = stdout.getvalue()
-        error = stderr.getvalue()
+    output, error, exit_code = _run(code)
 
     assert exit_code == 0, error
     assert output.strip() == "Fry until golden brown."
@@ -379,12 +327,7 @@ def test_class_super() -> None:
         BostonCream().cook();
         """
     )
-
-    with _redirect() as (stdout, stderr):
-        exit_code = main.run_text(Command.INTERPRET, code)
-
-        output = stdout.getvalue()
-        error = stderr.getvalue()
+    output, error, exit_code = _run(code)
 
     assert exit_code == 0, error
     assert output.strip() == _lines(
@@ -417,12 +360,7 @@ def test_super_on_subclass() -> None:
         C().test();
         """
     )
-
-    with _redirect() as (stdout, stderr):
-        exit_code = main.run_text(Command.INTERPRET, code)
-
-        output = stdout.getvalue()
-        error = stderr.getvalue()
+    output, error, exit_code = _run(code)
 
     assert exit_code == 0, error
     assert output.strip() == "A method"
