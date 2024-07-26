@@ -5,6 +5,7 @@ import time
 import random
 from typing import TYPE_CHECKING
 
+from app import util
 from app.errors import LoxRuntimeError
 from app.runtime import LoxCallable, LoxObject
 from app.schema import Token
@@ -56,8 +57,20 @@ class Random(LoxCallable):
         return "<native fn 'random'>"
 
 
+class Stringify(LoxCallable):
+    def arity(self) -> int:
+        return 1
+
+    def call(self, _: Interpreter, arguments: Sequence[LoxObject], token: Token) -> str:
+        return util.stringify(arguments[0])
+
+    def __str__(self) -> str:
+        return "<native fn 'stringify'>"
+
+
 BUILTINS: dict[str, Callable] = {
     "clock": Clock,
     "randInt": RandInt,
     "random": Random,
+    "stringify": Stringify,
 }
